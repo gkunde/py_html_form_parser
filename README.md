@@ -12,8 +12,8 @@ There are no dependencies for using the models directly.
 A library that enables storage of scraped data from a static or server side dynamically generated HTML forms. There is no support for client side dynamically generated HTML forms.
 
 All models provide two methods for parsing:
-* ```from_dict()``` - These methods are capable of reading in a dictionary containing the attributes and elements that have been parsed. These compliment the ```to_dict()``` methods provided in the models.
-* ```from_bs4()``` - These methods accept a BeautifulSoup4 (or compatible) object and extract attributes and children elements with in.
+* `from_dict()` - These methods are capable of reading in a dictionary containing the attributes and elements that have been parsed. These compliment the `to_dict()` methods provided in the models.
+* `from_bs4()` - These methods accept a BeautifulSoup4 (or compatible) object and extract attributes and children elements with in.
 
 ## Examples
 ### Example 1
