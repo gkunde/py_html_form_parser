@@ -11,12 +11,16 @@ There are no dependencies for using the models directly.
 ## Usage
 A library that enables storage of scraped data from a static or server side dynamically generated HTML forms. There is no support for client side dynamically generated HTML forms.
 
+The primary use is with the `FormManager` class, which allows a string value containing HTML to be parsed. The `FormManager` also provides convience methods for manging the forms, especially useful when multiple forms are present.
+
+The model classes can also be used directly, population can be done manually or through the convience methods offered.
+
 All models provide two methods for parsing:
 * `from_dict()` - These methods are capable of reading in a dictionary containing the attributes and elements that have been parsed. These compliment the `to_dict()` methods provided in the models.
 * `from_bs4()` - These methods accept a BeautifulSoup4 (or compatible) object and extract attributes and children elements with in.
 
 ## Examples
-### Example 1
+### Example 1 - Use with FormManager() class
 ```python
 import urllib.request
 
@@ -30,7 +34,7 @@ name_family = form_manager.forms[0].get_field_by_name("familyName").values[0].va
 print(name_family)
 ```
 
-### Example 2
+### Example 2 - Using the data models directly
 ```python
 import urllib.request
 
