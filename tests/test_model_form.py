@@ -318,6 +318,31 @@ class Test_FormModel(unittest.TestCase):
         self.assertEqual(1, len(form.fields))
         self.assertEqual(0, len(form.controls))
 
+    def test_to_http_post(self):
+        """
+        Test parsing from dictionary.
+        """
+
+        form_dict = {
+            'name': 'test1234',
+            'id': None,
+            'enctype': 'application/x-www-form-urlencoded',
+            'method': 'GET',
+            'accept-charset': 'utf-8',
+            'fields': [{'name': 'test1234',
+                        'type': 'text',
+                        'values': [{'value': 'test4321', 'is_selected': True, 'binary_path': None}]}],
+            'controls': []
+        }
+
+        form = Form.from_dict(form_dict)
+        http_post = form.to_http_post()
+
+        self.assertEqual(1, len(http_post))
+        self.assertEqual(2, len(http_post[0]))
+        self.assertEqual(form_dict["fields"][0]["name"], http_post[0][0])
+        self.assertEqual(form_dict["fields"][0]["values"][0]["value"], http_post[0][1])
+
     def test_to_dict(self):
         """
         Test dumping to dictionary

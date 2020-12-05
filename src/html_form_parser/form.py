@@ -59,7 +59,7 @@ class Form:
 
         return None
 
-    def get_control_by_name(self, control_name):
+    def get_control_by_name(self, control_name) -> FormControl:
         """
         Returns the first encountered control matching the provided name.
         Return value of None means no field was found.
@@ -301,3 +301,22 @@ class Form:
             form["controls"] = [control.to_dict() for control in self.controls]
 
         return form
+
+    def to_http_post(self) -> List[tuple]:
+        """
+        Generate a collection of tuples, suitable for use with an HTTP post
+        request.
+        """
+
+        results = []
+        for field in self.fields:
+            for value in field.values:
+                if value.is_selected:
+                    results.append((field.name, value.value))
+
+        for control in self.controls:
+            for value in control.values:
+                if control.is_selected:
+                    results.append((control.name, value.value))
+
+        return results

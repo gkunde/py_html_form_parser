@@ -30,7 +30,7 @@ class FormField:
 
         if values is not None:
             self.values_add_range(values)
-    
+
     def set_value_selected_status(self, value: str, status: bool):
         """
         Set the is_selected property of a field's value
