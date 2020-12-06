@@ -331,7 +331,7 @@ class Form:
 
         for control in self.controls:
             for value in control.values:
-                if control.is_selected:
+                if value.is_selected:
                     results.append((control.name, value.value))
 
         return results
