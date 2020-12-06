@@ -201,6 +201,7 @@ class Form:
         form_attrs = {
             "name": bs4parser.attrs.get("name", None),
             "id": bs4parser.attrs.get("id", None),
+            "action": bs4parser.attrs.get("action", None),
         }
 
         for option_attr in ("enctype", "method", ):
