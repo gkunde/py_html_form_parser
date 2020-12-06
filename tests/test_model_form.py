@@ -16,8 +16,9 @@ class Test_FormModel(unittest.TestCase):
 
         obj = Form()
 
-        self.assertEqual(None, obj.name)
-        self.assertEqual(None, obj.id)
+        self.assertIsNone(obj.name)
+        self.assertIsNone(obj.id)
+        self.assertIsNone(obj.action)
         self.assertEqual(Form.DEFAULT_CHARSET, obj.accepted_charset)
         self.assertEqual(Form.DEFAULT_ENCODING_TYPE, obj.encoding_type)
         self.assertEqual(Form.DEFAULT_METHOD, obj.method)
@@ -30,12 +31,14 @@ class Test_FormModel(unittest.TestCase):
 
         form_name = "form1"
         form_id = "id1"
+        form_action = "https://www.example.com"
         form_fields = [FormField("test1234"), FormField("test1235"), ]
 
         obj = Form(form_name, form_id, form_fields)
 
         self.assertEqual(form_name, obj.name)
         self.assertEqual(form_id, obj.id)
+        self.assertEqual(form_action, obj.action)
         self.assertEqual(Form.DEFAULT_CHARSET, obj.accepted_charset)
         self.assertEqual(Form.DEFAULT_ENCODING_TYPE, obj.encoding_type)
         self.assertEqual(Form.DEFAULT_METHOD, obj.method)

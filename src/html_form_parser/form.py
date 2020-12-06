@@ -13,6 +13,8 @@ class Form:
 
     :param id: The id attribute of the form.
 
+    :param action: The action attribute of the form.
+
     :param fields: A collection of FormFieldModel objects.
     """
 
@@ -20,11 +22,12 @@ class Form:
     DEFAULT_METHOD = "GET"
     DEFAULT_CHARSET = "utf-8"
 
-    def __init__(self, name: str = None, id: str = None, fields: List[FormField] = None, controls: List[FormField] = None):
+    def __init__(self, name: str = None, id: str = None, action: str = None, fields: List[FormField] = None, controls: List[FormField] = None):
 
         self.__data = {
             "name": None,
             "id": None,
+            "action": None,
             "accepted_charset": self.DEFAULT_CHARSET,
             "encoding_type": self.DEFAULT_ENCODING_TYPE,
             "method": self.DEFAULT_METHOD,
@@ -37,6 +40,7 @@ class Form:
 
         self.name = name
         self.id = id
+        self.action = action
 
         if fields is not None:
             self.fields_add_range(fields)
@@ -73,6 +77,14 @@ class Form:
             return results[0]
 
         return None
+
+    @property
+    def action(self):
+        return self.__data["action"]
+
+    @action.setter
+    def action(self, value: str):
+        self.__data["action"]
 
     @property
     def name(self):
@@ -254,11 +266,12 @@ class Form:
 
         attr_name = form.get("name", None)
         attr_id = form.get("id", None)
+        attr_action = form.get("action", None)
         attr_enctype = form.get("enctype", cls.DEFAULT_ENCODING_TYPE)
         attr_method = form.get("method", cls.DEFAULT_METHOD)
         attr_accept_charset = form.get("accept-charset", cls.DEFAULT_CHARSET)
 
-        form_obj = Form(attr_name, attr_id)
+        form_obj = Form(attr_name, attr_id, attr_action)
         form_obj.accepted_charset = attr_accept_charset
         form_obj.encoding_type = attr_enctype
         form_obj.method = attr_method
@@ -287,6 +300,7 @@ class Form:
         form = {
             "name": self.name,
             "id": self.id,
+            "action": self.action,
             "enctype": self.encoding_type,
             "method": self.method,
             "accept-charset": self.accepted_charset,
