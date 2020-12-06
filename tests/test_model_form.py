@@ -34,7 +34,7 @@ class Test_FormModel(unittest.TestCase):
         form_action = "https://www.example.com"
         form_fields = [FormField("test1234"), FormField("test1235"), ]
 
-        obj = Form(form_name, form_id, form_fields)
+        obj = Form(form_name, form_id, form_action, form_fields)
 
         self.assertEqual(form_name, obj.name)
         self.assertEqual(form_id, obj.id)
@@ -335,7 +335,9 @@ class Test_FormModel(unittest.TestCase):
             'fields': [{'name': 'test1234',
                         'type': 'text',
                         'values': [{'value': 'test4321', 'is_selected': True, 'binary_path': None}]}],
-            'controls': []
+            'controls': [{'name': 'submit',
+                          'type': 'submit',
+                          'values': [{'value': 'process', 'is_selected': False, 'binary_path': None}]}],
         }
 
         form = Form.from_dict(form_dict)
