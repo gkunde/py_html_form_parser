@@ -84,7 +84,7 @@ class Form:
 
     @action.setter
     def action(self, value: str):
-        self.__data["action"]
+        self.__data["action"] = value
 
     @property
     def name(self):
