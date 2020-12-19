@@ -55,3 +55,51 @@ name_family = form.fields["familyName"].value
 
 print(name_family)
 ```
+
+### Example 3 - Updating a "text" input
+Updating the value of a text entry field is available by using the field's name attribute in the fields property. The value property can then be updated.
+```python
+import urrlib.request
+
+import bs4.BeautifulSoup
+
+from html_form_parser import FormManager
+
+html_doc = urllib.request.urlopen('https://www.example.com').page_read()
+
+form_manager = FormManager(html_doc)
+form_manager.form[0].fields["familyName"].value = "Smith"
+form_manager.form[0].fields["givenName"].value = "John"
+```
+
+### Example 4 - Checking the "checkbox" input
+Access to a checkbox, radio button, or select option can be done by providing a tuple pair containing the field's name attribute and field's value attribute. Then the is_selected property can be enabled or disabled with a boolean value.
+```python
+import urrlib.request
+
+import bs4.BeautifulSoup
+
+from html_form_parser import FormManager
+
+html_doc = urllib.request.urlopen('https://www.example.com').page_read()
+
+form_manager = FormManager(html_doc)
+form_manager.form[0].fields[("musicGenre", "Jazz", )].is_selected = True
+```
+
+### Example 5 - Updating the properties of a field by index
+All of the form elements are available with an integer index. The fields in the collection are not sorted and are not stored in the order they are presented in the HTML markup. This approach is useful if the calling method has built it's own index of the fields.
+```python
+import urrlib.request
+
+import bs4.BeautifulSoup
+
+from html_form_parser import FormManager
+
+html_doc = urllib.request.urlopen('https://www.example.com').page_read()
+
+form_manager = FormManager(html_doc)
+form_manager.form[0].fields[0].value = "Smith"
+form_manager.form[0].fields[1].value = "John"
+form_manager.form[0].fields[8].is_selected = True
+```
