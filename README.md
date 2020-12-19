@@ -1,4 +1,8 @@
 # Python HTML Form Parser
+
+> [!IMPORTANT]
+> Please consider this project as alpha release. Breaking changes may not always be logged.
+
 A library for parsing a static HTML form into a model. The purpose is to enable capture of form data, read and update values, and provide a set of serialize methods for storing or submitting the form data.
 
 ## Dependencies
