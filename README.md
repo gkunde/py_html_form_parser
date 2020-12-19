@@ -33,7 +33,7 @@ import html_form_parser
 html_doc = urllib.request.urlopen('https://www.example.com').page_read()
 
 form_manager = html_form_parser.FormManager(html_doc)
-name_family = form_manager.forms[0].get_field_by_name("familyName").values[0].value
+name_family = form_manager.forms[0].fields["familyName"].value
 
 print(name_family)
 ```
@@ -51,7 +51,7 @@ html_doc = urllib.request.urlopen('https://www.example.com').page_read()
 bs4_form = bs4.BeautifulSoup(html_doc, "html5lib").find("form")
 
 form = Form.from_bs4(bs4_form)
-name_family = form.get_field_by_name("familyName").values[0].value
+name_family = form.fields["familyName"].value
 
 print(name_family)
 ```
