@@ -2,7 +2,6 @@ import unittest
 
 from bs4 import BeautifulSoup
 from html_form_parser.form_field import FormField
-from html_form_parser.form_field_value import FormFieldValue
 
 
 class Test_FormFieldModel(unittest.TestCase):
@@ -12,11 +11,21 @@ class Test_FormFieldModel(unittest.TestCase):
         test default property values
         """
 
-        obj = FormField()
+        field_name = ""
 
-        self.assertEqual(None, obj.name)
-        self.assertEqual(FormField.DEFAULT_INPUT_TYPE, obj._type)
-        self.assertEqual(0, len(obj.values))
+        obj = FormField(field_name)
+
+        self.assertEqual(field_name, obj.name)
+        self.assertEqual("", obj.value)
+        self.assertEqual(True, obj.is_selected)
+        self.assertIsNone(obj.binary_path)
+
+    def test_init_name_exception(self):
+        """
+        test name required on init
+        """
+
+        self.assertRaises(ValueError, FormField)
 
     def test_init_values(self):
         """
@@ -24,13 +33,16 @@ class Test_FormFieldModel(unittest.TestCase):
         """
 
         field_name = "fieldName"
-        field_values = [None, None, ]
+        field_value = "test_value"
+        field_is_selected = False
+        field_binary_path = ""
 
-        obj = FormField(field_name, field_values)
+        obj = FormField(field_name, field_value, field_is_selected, field_binary_path)
 
         self.assertEqual(field_name, obj.name)
-        self.assertEqual(FormField.DEFAULT_INPUT_TYPE, obj._type)
-        self.assertEqual(len(field_values), len(obj.values))
+        self.assertEqual(field_value, obj.value)
+        self.assertEqual(field_is_selected, obj.is_selected)
+        self.assertEqual(field_binary_path, obj.binary_path)
 
     def test_setters(self):
         """
@@ -38,27 +50,21 @@ class Test_FormFieldModel(unittest.TestCase):
         """
 
         field_name = "fieldName"
-        field_type = "checkbox"
-        field_values = [FormFieldValue("test1234"), FormFieldValue("test1235"), ]
+        field_name_altered = "alteredFieldname"
+        field_value = "test_value"
+        field_is_selected = False
+        field_binary_path = ""
 
-        obj = FormField()
-        obj.name = field_name
-        obj._type = field_type
-        obj.values_add_range(field_values)
+        obj = FormField(field_name)
+        obj.name = field_name_altered
+        obj.value = field_value
+        obj.is_selected = field_is_selected
+        obj.binary_path = field_binary_path
 
-        self.assertEqual(field_name, obj.name)
-        self.assertEqual(field_type, obj._type)
-        self.assertEqual(len(field_values), len(obj.values))
-
-    def test_value_append(self):
-        """
-        test appending values to the field
-        """
-
-        obj = FormField()
-        obj.values_append(FormFieldValue("test1234"))
-
-        self.assertEqual(1, len(obj.values))
+        self.assertEqual(field_name_altered, obj.name)
+        self.assertEqual(field_value, obj.value)
+        self.assertEqual(field_is_selected, obj.is_selected)
+        self.assertEqual(field_binary_path, obj.binary_path)
 
     def test_from_bs4(self):
         """
@@ -80,9 +86,9 @@ class Test_FormFieldModel(unittest.TestCase):
 
         form_field = FormField.from_bs4(bs4parser)
 
-        self.assertEqual(attrs["type"], form_field._type)
-        self.assertEqual(attrs["name"], form_field.name)
-        self.assertEqual(1, len(form_field.values))
+        self.assertEqual(1, len(form_field))
+        self.assertEqual(attrs["name"], form_field[0].name)
+        self.assertEqual(attrs["value"], form_field[0].value)
 
     def test_from_bs4_invalid_tag(self):
         """
@@ -104,50 +110,7 @@ class Test_FormFieldModel(unittest.TestCase):
 
         self.assertRaises(ValueError, FormField.from_bs4, bs4parser)
 
-    def test_from_bs4_invalid_input_type(self):
-        """
-        A control field type raises errors
-        """
-
-        tag_name = "input"
-
-        attrs = {
-            "type": "submit",
-            "name": "test1234",
-            "value": "test4321",
-        }
-
-        field = "<%s %s />" % (tag_name, " ".join("%s=\"%s\"" % (key, val, )
-                                                  for key, val in attrs.items()))
-
-        bs4parser = BeautifulSoup(field, "html5lib").find(tag_name)
-
-        self.assertRaises(ValueError, FormField.from_bs4, bs4parser)
-
-    def test_from_bs4_input_default_type(self):
-        """
-        Verify input tags with no type default to text.
-        """
-
-        tag_name = "input"
-
-        attrs = {
-            "name": "test1234",
-            "value": "test4321",
-        }
-
-        field = "<%s %s />" % (tag_name, " ".join("%s=\"%s\"" % (key, val, )
-                                                  for key, val in attrs.items()))
-
-        bs4parser = BeautifulSoup(field, "html5lib").find(tag_name)
-
-        form_field = FormField.from_bs4(bs4parser)
-
-        self.assertEqual(FormField.DEFAULT_INPUT_TYPE, form_field._type)
-        self.assertEqual(attrs["name"], form_field.name)
-        self.assertEqual(1, len(form_field.values))
-
-    def test_from_bs4_textarea_default_type(self):
+    def test_from_bs4_textarea_notext(self):
         """
         Verify input tags with no type default to text.
         """
@@ -166,9 +129,35 @@ class Test_FormFieldModel(unittest.TestCase):
 
         form_field = FormField.from_bs4(bs4parser)
 
-        self.assertEqual("", form_field._type)
-        self.assertEqual(attrs["name"], form_field.name)
-        self.assertEqual(1, len(form_field.values))
+        self.assertEqual(1, len(form_field))
+        self.assertEqual(attrs["name"], form_field[0].name)
+        self.assertEqual("", form_field[0].value)
+
+    def test_from_bs4_textarea(self):
+        """
+        Verify input tags with no type default to text.
+        """
+
+        tag_name = "textarea"
+
+        attrs = {
+            "name": "test1234",
+            "value": "test4321",
+        }
+
+        field = "<%s %s>%s</%s>" % (tag_name,
+                                    " ".join("%s=\"%s\"" % (key, val, )
+                                             for key, val in attrs.items()),
+                                    attrs["value"],
+                                    tag_name)
+
+        bs4parser = BeautifulSoup(field, "html5lib").find(tag_name)
+
+        form_field = FormField.from_bs4(bs4parser)
+
+        self.assertEqual(1, len(form_field))
+        self.assertEqual(attrs["name"], form_field[0].name)
+        self.assertEqual(attrs["value"], form_field[0].value)
 
     def test_from_bs4_select(self):
         """
@@ -193,10 +182,10 @@ class Test_FormFieldModel(unittest.TestCase):
 
         field = "<%s %s>" % (tag_name, " ".join("%s=\"%s\"" % (key, val, )
                                                 for key, val in select_attrs.items()))
-        opt0 = "<%s %s>" % (option_tag_name, " ".join("%s=\"%s\"" % (key, val, )
-                                                      for key, val in option_attrs0.items()))
-        opt1 = "<%s %s>" % (option_tag_name, " ".join("%s=\"%s\"" % (key, val, )
-                                                      for key, val in option_attrs1.items()))
+        opt0 = "<%s %s />" % (option_tag_name, " ".join("%s=\"%s\"" % (key, val, )
+                                                        for key, val in option_attrs0.items()))
+        opt1 = "<%s %s />" % (option_tag_name, " ".join("%s=\"%s\"" % (key, val, )
+                                                        for key, val in option_attrs1.items()))
         fieldc = "</%s>" % (tag_name)
 
         bs4parser = BeautifulSoup("%s%s%s%s" % (
@@ -204,15 +193,19 @@ class Test_FormFieldModel(unittest.TestCase):
 
         form_field = FormField.from_bs4(bs4parser)
 
-        self.assertEqual(select_attrs["name"], form_field.name)
+        self.assertEqual(2, len(form_field))
 
-        self.assertEqual(2, len(form_field.values))
+        self.assertEqual(select_attrs["name"], form_field[0].name)
+        self.assertEqual(select_attrs["name"], form_field[1].name)
 
-        self.assertEqual(option_attrs0["value"], form_field.values[0].value)
-        self.assertFalse(form_field.values[0].is_selected)
+        self.assertEqual(option_attrs0["value"], form_field[0].value)
+        self.assertEqual(option_attrs1["value"], form_field[1].value)
 
-        self.assertEqual(option_attrs1["value"], form_field.values[1].value)
-        self.assertTrue(form_field.values[1].is_selected)
+        self.assertFalse(form_field[0].is_selected)
+        self.assertTrue(form_field[1].is_selected)
+
+        self.assertIsNone(form_field[0].binary_path)
+        self.assertIsNone(form_field[1].binary_path)
 
     def test_from_dict(self):
         """
@@ -221,30 +214,17 @@ class Test_FormFieldModel(unittest.TestCase):
 
         attrs = {
             "name": "test1234",
-            "values": [],
+            "value": "1234TEST",
+            "is_selected": False,
+            "binary_path": None
         }
 
         form_field = FormField.from_dict(attrs)
 
         self.assertEqual(attrs["name"], form_field.name)
-        self.assertEqual(FormField.DEFAULT_INPUT_TYPE, form_field._type)
-        self.assertEqual(0, len(form_field.values))
-
-    def test_from_dict_with_values(self):
-        """
-        Verify values are captured.
-        """
-
-        attrs = {
-            "name": "test1234",
-            "values": [{"value": "test4321", "is_selected": True}]
-        }
-
-        form_field = FormField.from_dict(attrs)
-
-        self.assertEqual(attrs["name"], form_field.name)
-        self.assertEqual(FormField.DEFAULT_INPUT_TYPE, form_field._type)
-        self.assertEqual(1, len(form_field.values))
+        self.assertEqual(attrs["value"], form_field.value)
+        self.assertFalse(form_field.is_selected)
+        self.assertIsNone(form_field.binary_path)
 
     def test_to_dict(self):
         """
@@ -253,10 +233,17 @@ class Test_FormFieldModel(unittest.TestCase):
 
         attrs = {
             "name": "test1234",
-            "values": [{"value": "test4321", "is_selected": True, "binary_path": None}]
+            "value": "test4321",
         }
 
-        form_field = FormField.from_dict(attrs).to_dict()
+        form_field = FormField(attrs["name"], attrs["value"]).to_dict()
+
+        self.assertIn("name", form_field)
+        self.assertIn("value", form_field)
+        self.assertIn("is_selected", form_field)
+        self.assertIn("binary_path", form_field)
 
         self.assertEqual(attrs["name"], form_field["name"])
-        self.assertEqual(attrs["values"], form_field["values"])
+        self.assertEqual(attrs["value"], form_field["value"])
+        self.assertTrue(form_field["is_selected"])
+        self.assertIsNone(form_field["binary_path"])

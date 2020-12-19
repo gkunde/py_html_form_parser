@@ -1,10 +1,8 @@
 import unittest
-from bs4 import BeautifulSoup
 
+from bs4 import BeautifulSoup
 from html_form_parser.form import Form
-from html_form_parser.form_control import FormControl
 from html_form_parser.form_field import FormField
-from html_form_parser.form_field_value import FormFieldValue
 
 
 class Test_FormModel(unittest.TestCase):
@@ -51,7 +49,6 @@ class Test_FormModel(unittest.TestCase):
 
         form_name = "form1"
         form_id = "id1"
-        form_fields = [FormField("test1234"), FormField("test1235"), ]
         form_accepted_char_set = "8859-1"
         form_method = "POST"
         form_encoding_type = "text/plain"
@@ -62,78 +59,12 @@ class Test_FormModel(unittest.TestCase):
         obj.accepted_charset = form_accepted_char_set
         obj.encoding_type = form_encoding_type
         obj.method = form_method
-        obj.fields_add_range(form_fields)
 
         self.assertEqual(form_name, obj.name)
         self.assertEqual(form_id, obj.id)
         self.assertEqual(form_accepted_char_set, obj.accepted_charset)
         self.assertEqual(form_encoding_type, obj.encoding_type)
         self.assertEqual(form_method, obj.method)
-        self.assertEqual(2, len(obj.fields))
-
-    def test_append_field(self):
-        """
-        test appending form fields to form
-        """
-
-        obj = Form()
-        obj.fields_append(FormField("test1234"))
-
-        self.assertEqual(1, len(obj.fields))
-
-    def test_fields_add_range(self):
-        """
-        test appending form fields to form
-        """
-
-        obj = Form()
-        obj.fields_add_range([FormField("test1234"), ])
-
-        self.assertEqual(1, len(obj.fields))
-
-    def test_fields_add_range_multivalue(self):
-        """
-        Verify multiple fields with the same type and name have values merged.
-        """
-
-        obj = Form()
-        obj.fields_add_range([FormField("test1234", [FormFieldValue("test4321")]),
-                              FormField("test1234", [FormFieldValue("test4322")])])
-
-        self.assertEqual(1, len(obj.fields))
-        self.assertEqual(2, len(obj.fields[0].values))
-
-    def test_controls_append(self):
-        """
-        test appending form fields to form
-        """
-
-        obj = Form()
-        obj.controls_append(FormControl("test1234"))
-
-        self.assertEqual(1, len(obj.controls))
-
-    def test_controls_add_range(self):
-        """
-        test appending form fields to form
-        """
-
-        obj = Form()
-        obj.controls_add_range([FormControl("test1234"), ])
-
-        self.assertEqual(1, len(obj.controls))
-
-    def test_controls_add_range_multivalue(self):
-        """
-        Verify multiple fields with the same type and name have values merged.
-        """
-
-        obj = Form()
-        obj.controls_add_range([FormControl("test1234", [FormFieldValue("test4321")]),
-                                FormControl("test1234", [FormFieldValue("test4322")])])
-
-        self.assertEqual(1, len(obj.controls))
-        self.assertEqual(2, len(obj.controls[0].values))
 
     def test_from_bs4(self):
         """
@@ -168,7 +99,6 @@ class Test_FormModel(unittest.TestCase):
         self.assertEqual(Form.DEFAULT_METHOD, form.method)
         self.assertEqual(Form.DEFAULT_CHARSET, form.accepted_charset)
         self.assertEqual(1, len(form.fields))
-        self.assertEqual(0, len(form.controls))
 
     def test_from_bs4_optional_attrs(self):
         """
@@ -208,7 +138,6 @@ class Test_FormModel(unittest.TestCase):
         self.assertEqual(form_attrs["method"], form.method)
         self.assertEqual(form_attrs["accept-charset"], form.accepted_charset)
         self.assertEqual(1, len(form.fields))
-        self.assertEqual(0, len(form.controls))
 
     def test_from_bs4_skip_form_attr(self):
         """
@@ -250,7 +179,6 @@ class Test_FormModel(unittest.TestCase):
         self.assertEqual(form_attrs["method"], form.method)
         self.assertEqual(form_attrs["accept-charset"], form.accepted_charset)
         self.assertEqual(0, len(form.fields))
-        self.assertEqual(0, len(form.controls))
 
     def test_from_bs4_capture_form_attr(self):
         """
@@ -293,7 +221,6 @@ class Test_FormModel(unittest.TestCase):
         self.assertEqual(form_attrs["method"], form.method)
         self.assertEqual(form_attrs["accept-charset"], form.accepted_charset)
         self.assertEqual(1, len(form.fields))
-        self.assertEqual(0, len(form.controls))
 
     def test_from_dict(self):
         """
@@ -308,8 +235,9 @@ class Test_FormModel(unittest.TestCase):
             'accept-charset': 'utf-8',
             'fields': [{'name': 'test1234',
                         'type': 'text',
-                        'values': [{'value': 'test4321', 'is_selected': True, 'binary_path': None}]}],
-            'controls': []
+                        'value': 'test4321',
+                        'is_selected': True,
+                        'binary_path': None,}],
         }
 
         form = Form.from_dict(form_dict)
@@ -319,34 +247,6 @@ class Test_FormModel(unittest.TestCase):
         self.assertEqual(Form.DEFAULT_METHOD, form.method)
         self.assertEqual(Form.DEFAULT_CHARSET, form.accepted_charset)
         self.assertEqual(1, len(form.fields))
-        self.assertEqual(0, len(form.controls))
-
-    def test_to_http_post(self):
-        """
-        Test parsing from dictionary.
-        """
-
-        form_dict = {
-            'name': 'test1234',
-            'id': None,
-            'enctype': 'application/x-www-form-urlencoded',
-            'method': 'GET',
-            'accept-charset': 'utf-8',
-            'fields': [{'name': 'test1234',
-                        'type': 'text',
-                        'values': [{'value': 'test4321', 'is_selected': True, 'binary_path': None}]}],
-            'controls': [{'name': 'submit',
-                          'type': 'submit',
-                          'values': [{'value': 'process', 'is_selected': False, 'binary_path': None}]}],
-        }
-
-        form = Form.from_dict(form_dict)
-        http_post = form.to_http_post()
-
-        self.assertEqual(1, len(http_post))
-        self.assertEqual(2, len(http_post[0]))
-        self.assertEqual(form_dict["fields"][0]["name"], http_post[0][0])
-        self.assertEqual(form_dict["fields"][0]["values"][0]["value"], http_post[0][1])
 
     def test_to_dict(self):
         """
@@ -425,5 +325,4 @@ class Test_FormModel(unittest.TestCase):
         self.assertEqual(Form.DEFAULT_ENCODING_TYPE, form.encoding_type)
         self.assertEqual(Form.DEFAULT_METHOD, form.method)
         self.assertEqual(Form.DEFAULT_CHARSET, form.accepted_charset)
-        self.assertEqual(1, len(form.fields))
-        self.assertEqual(1, len(form.controls))
+        self.assertEqual(2, len(form.fields))
