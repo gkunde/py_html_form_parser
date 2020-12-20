@@ -25,121 +25,22 @@ class FormFieldCollection(MutableSequence):
 
     __TYPE_ERROR_EXPECTED = "Expected type '%s', got '%s' instead."
 
-    def __init__(self, iterable=None):
+    def __init__(self, iterable: Iterable = None):
 
-        self.__items = []
+        self.__index = []
+        self.__fields = []
 
-        self.__field_name_idx = {}
-        self.__field_name_value_idx = {}
+        self.__index_to_check = None
 
         if iterable is not None:
             self.extend(iterable)
 
     @property
     def items(self):
+        """
+        Returns an iterable of all the fields in the collection.
+        """
         return self.__iter__
-
-    def clear(self):
-        """
-        Clear the contents of the collection.
-        """
-
-        self.__items.clear()
-        self.__field_name_idx.clear()
-        self.__field_name_value_idx.clear()
-
-    def index(self, index) -> int:
-        """
-        Returns the index location of the first instance of the item.
-
-        :param index: An form field name or form field name value tuple to
-            locate the index of the FormField object.
-        """
-
-        if isinstance(index, str) and index in self.__field_name_idx:
-            return self.__field_name_idx[index]
-        elif isinstance(index, Iterable) and index in self.__field_name_value_idx:
-            return self.__field_name_value_idx[index]
-        else:
-            raise ValueError("%s is not in list" % (index, ))
-
-    def pop(self, index=None) -> FormField:
-        """
-        Remove entry at given index.
-
-        Expensive operation, this requires object indexes to rebuild.
-
-        :para index: An integer, field name, or field name & value tuple to
-            remove from the collection.
-        """
-
-        idx = None
-        if index is None:
-            idx = len(self) - 1
-        elif isinstance(index, int):
-            idx = index
-        elif isinstance(index, str):
-            idx = self.__field_name_idx[index]
-        elif isinstance(index, Iterable) and len(index) == 2:
-            idx = self.__field_name_value_idx[index]
-        else:
-            raise IndexError("Out of range.")
-
-        item = self.__items.pop(idx)
-
-        for key, value in self.__field_name_idx.items():
-            if value >= idx:
-                self.__field_name_idx[key] -= 1
-
-        for key, value in self.__field_name_value_idx.items():
-            if value >= idx:
-                self.__field_name_value_idx[key] -= 1
-
-        return item
-
-    def insert(self, index, item):
-        """
-        Insert a field at a specific index in the collection.
-
-        NOTE: The index must of an existing entry in the collection, not the
-        from the FormField you are attempting to add.
-
-        This is an operation requires a rebuild of object indexes, use
-        sparingly.
-
-        :param index: An integer, field name, or field name & value tuple to
-            insert the given object at.
-
-        :param item: The FormField value to be inserted.
-        """
-
-        if not isinstance(item, FormField):
-            self.__raise_type_error_expected(FormField, item)
-
-        idx = None
-        if isinstance(index, int):
-            idx = index
-        elif isinstance(index, str):
-            idx = self.__field_name_idx[index]
-        elif isinstance(index, Iterable) and len(index) == 2:
-            idx = self.__field_name_value_idx[index]
-        else:
-            raise IndexError("Out of range.")
-
-        self.__items.insert(index, item)
-
-        for key, value in self.__field_name_idx.items():
-            if value >= idx:
-                self.__field_name_value_idx[key] += 1
-
-        for key, value in self.__field_name_value_idx.items():
-            if value >= idx:
-                self.__field_name_value_idx[key] += 1
-
-        self.__field_name_idx[item.name] = idx
-
-        for val in item.values:
-            self.__field_name_value_idx[(item.name, val.value, )] = idx
 
     def append(self, item: FormField):
         """
@@ -151,16 +52,23 @@ class FormFieldCollection(MutableSequence):
         if not isinstance(item, FormField):
             self.__raise_type_error_expected(FormField, item, )
 
-        new_idx = len(self)
+        self.__index.append((item.name, item.value, ))
+        self.__fields.append(item)
 
-        if item.name not in self.__field_name_idx:
-            self.__field_name_idx[item.name] = new_idx
+    def clear(self):
+        """
+        Clear the contents of the collection.
+        """
 
-        key_value = (item.name, item.value, )
-        if key_value not in self.__field_name_idx:
-            self.__field_name_value_idx[key_value] = new_idx
+        self.__index.clear()
+        self.__fields.clear()
 
-        self.__items.append(item)
+    def copy(self):
+        """
+        A shallow copy of the fields in the collection.
+        """
+
+        return [item for item in self.__fields]
 
     def extend(self, items: List[FormField]):
         """
@@ -177,17 +85,88 @@ class FormFieldCollection(MutableSequence):
         else:
             self.__raise_type_error_expected(Iterable, items)
 
-    def __len__(self):
-        return len(self.__items)
+    def insert(self, index, form_field: FormField):
 
-    def __iter__(self):
-        for item in self.__items:
+        idx = self.__get_index(index)
+
+        self.__index.insert(idx, (form_field.name, form_field.value, ))
+        self.__fields.insert(idx, form_field)
+
+    def pop(self, index) -> FormField:
+        """
+        Remove entry at given index.
+
+        Expensive operation, this requires object indexes to rebuild.
+
+        :para index: An integer, field name, or field name & value tuple to
+            remove from the collection.
+        """
+
+        idx = self.__get_index(index)
+
+        self.__index.pop(idx)
+        return self.__fields.pop(idx)
+
+    def sort(self):
+        """
+        Sorts the collection in place.
+        """
+
+        self.__fields = sorted(self.__fields, key=lambda field: (field.name, field.value, ))
+        self.__index = [(field.name, field.value, ) for field in self.__fields]
+
+        self.__index_to_check = None
+
+    def remove(self, form_field: FormField) -> None:
+        """
+        Removes the referenced object from the collection.
+        """
+
+        index = (form_field.name, form_field.key, )
+
+        self.pop(index)
+
+    def reverse(self) -> None:
+        """
+        Reverses the collection in place.
+        """
+
+        self.__index.reverse()
+        self.__fields.reverse()
+
+    def __get_index(self, key) -> int:
+
+        index = None
+        if isinstance(key, int):
+            index = key
+
+        elif isinstance(key, str):
+            # return the first encountered element
+
+            locations = [idx for idx, entry in enumerate(self.__index) if entry[0] == key]
+            index = locations[0]
+
+        elif isinstance(key, Iterable) and len(key) == 2:
+            index = self.__index.index(key)
+
+        return index
+
+    def __raise_type_error_expected(self, expected, given):
+        raise TypeError(self.__TYPE_ERROR_EXPECTED % (expected.__name__, given.__name__, ))
+
+    def __len__(self) -> int:
+        return len(self.__index)
+
+    def __iter__(self) -> FormField:
+        for item in self.__fields:
             yield item
 
-    def __eq__(self, item):
-        raise NotImplementedError()
+    def __eq__(self, item: 'FormFieldCollection') -> bool:
 
-    def __add__(self, items) -> 'FormFieldCollection':
+        compare_to = [(field.name, field.value, ) for field in item]
+        return self.__index == compare_to
+
+    def __add__(self, form_field_collection) -> 'FormFieldCollection':
         """
         Merge two collections together, returning a new collection from the
         merge.
@@ -196,11 +175,11 @@ class FormFieldCollection(MutableSequence):
         """
 
         new_collection = FormFieldCollection(self)
-        new_collection.extend(items)
+        new_collection.extend(form_field_collection)
 
         return new_collection
 
-    def __getitem__(self, index) -> FormField:
+    def __getitem__(self, key) -> FormField:
         """
         Make the object subscriptable. The items can be accessed via integer
         index, a name (only first instance will be returned), or a field name
@@ -211,22 +190,33 @@ class FormFieldCollection(MutableSequence):
         :returns: The item at the given index.
         """
 
-        if isinstance(index, int):
-            return self.__items[index]
-        elif isinstance(index, str):
-            return self.__items[self.__field_name_idx[index]]
-        elif isinstance(index, Iterable) and len(index) == 2:
-            return self.__items[self.__field_name_value_idx[index]]
-        elif isinstance(index, slice):
+        if isinstance(key, slice):
             raise TypeError("Unsupported method: 'slice'")
-        else:
-            raise IndexError("Out of range.")
 
-    def __setitem__(self, key, newvalue):
-        raise NotImplementedError()
+        if self.__index_to_check is not None:
+            # Update self.__index to ensure it's value matches its companion
+            # record in self.__fields.
+
+            field = self.__fields[self.__index_to_check]
+            self.__index[self.__index_to_check] = (field.name, field.value, )
+
+            self.__index_to_check = None
+
+        idx = self.__get_index(key)
+
+        # Set a breadcrumb to make sure that the self.__index entry matches
+        # its companion in self.__fields
+        self.__index_to_check = idx
+
+        return self.__fields[idx]
+
+    def __setitem__(self, key, newvalue: FormField):
+
+        idx = self.__get_index(key)
+
+        self.pop(idx)
+        self.__index.insert(idx, newvalue)
+        self.__fields.insert(idx, newvalue)
 
     def __delitem__(self, key):
         self.pop(key)
-
-    def __raise_type_error_expected(self, expected, given):
-        raise TypeError(self.__TYPE_ERROR_EXPECTED % (expected.__name__, given.__name__, ))
