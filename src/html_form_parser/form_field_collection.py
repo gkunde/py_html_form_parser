@@ -86,6 +86,15 @@ class FormFieldCollection(MutableSequence):
             self.__raise_type_error_expected(Iterable, items)
 
     def insert(self, index, form_field: FormField):
+        """
+        Insert a FormField object at the provided index.
+
+        :param index: An integer index, the string field name of an existing
+            entry, or a tuple of the field name and value of an existing
+            entry to insert the new object at.
+        
+        :param form_field: The form field object to be inserted.
+        """
 
         idx = self.__get_index(index)
 
@@ -135,6 +144,15 @@ class FormFieldCollection(MutableSequence):
         self.__fields.reverse()
 
     def __get_index(self, key) -> int:
+        """
+        Provides the ability to access entries in the collection with an
+        integer, the name of the field, or a tuple with the name and value.
+        When multiple results can be returned, the first instance is returned.
+
+        :param key: The index or key to use for finding the index of the item.
+            Can be an integer of the index, a string of the FormField.name
+            property, or a tuple with the FormField.name and FormField.value.
+        """
 
         index = None
         if isinstance(key, int):
