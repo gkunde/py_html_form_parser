@@ -209,3 +209,72 @@ class FormField:
 
     def __dict__(self):
         return self.to_dict()
+
+    def __eq__(self, compare_to: 'FormField') -> bool:
+
+        if self.name != compare_to.name:
+            return False
+        if self.value != compare_to.value:
+            return False
+        if self.is_selected != compare_to.is_selected:
+            return False
+        if self.binary_path != compare_to.binary_path:
+            return False
+
+        return True
+
+    def __lt__(self, compare_to: 'FormField') -> bool:
+
+        if self == compare_to:
+            return False
+
+        if self.name < compare_to.name:
+            return True
+
+        if self.value < compare_to.value:
+            return True
+
+        if self.binary_path < compare_to.binary_path:
+            return True
+
+        if self.is_selected < compare_to.is_selected:
+            return True
+
+        return False
+
+    def __gt__(self, compare_to: 'FormField') -> bool:
+
+        if self == compare_to:
+            return False
+
+        if self.name > compare_to.name:
+            return True
+
+        if self.value > compare_to.value:
+            return True
+
+        if self.binary_path > compare_to.binary_path:
+            return True
+
+        if self.is_selected > compare_to.is_selected:
+            return True
+
+        return False
+
+    def __le__(self, compare_to: 'FormField') -> bool:
+
+        if self == compare_to:
+            return True
+
+        return self < compare_to
+
+    def __ge__(self, compare_to: 'FormField') -> bool:
+
+        if self == compare_to:
+            return True
+        
+        return self > compare_to
+    
+    def __ne__(self, compare_to: 'FormField') -> bool:
+
+        return not (self == compare_to)
