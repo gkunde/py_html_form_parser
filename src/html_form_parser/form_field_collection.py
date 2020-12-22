@@ -25,15 +25,18 @@ class FormFieldCollection(MutableSequence):
 
     __TYPE_ERROR_EXPECTED = "Expected type '%s', got '%s' instead."
 
-    def __init__(self, iterable: Iterable = None):
+    def __init__(self, iterable: List[FormField] = None):
 
-        self.__index = []
         self.__fields = []
 
         # This indicates which item from the collection was last accessed, and
         # its name and value need to be checked for an update.
         self.__index_to_check = None
 
+        # These indexes are intended to provide a lookup for the objects
+        # stored in self.__fields. One to enable look-ups by a FormField.name
+        # attribute, the other to perform look-ups by FormField.name and
+        # FormField.value.
         self.__index_name = {}
         self.__index_name_value = {}
 
@@ -47,25 +50,25 @@ class FormFieldCollection(MutableSequence):
         """
         return self.__iter__
 
-    def append(self, item: FormField):
+    def append(self, form_field: FormField):
         """
         Add item to the collection
 
-        :param item: A FormField object to be added.
+        :param form_field: A FormField object to be added.
         """
 
-        if not isinstance(item, FormField):
-            self.__raise_type_error_expected(FormField, item, )
+        if not isinstance(form_field, FormField):
+            self.__raise_type_error_expected(FormField, form_field, )
 
         new_index = len(self.__fields)
-        if item.name not in self.__index_name:
-            self.__index_name[item.name] = new_index
+        if form_field.name not in self.__index_name:
+            self.__index_name[form_field.name] = new_index
 
-        key = (item.name, item.value, )
+        key = (form_field.name, form_field.value, )
         if key not in self.__index_name_value:
             self.__index_name_value[key] = new_index
 
-        self.__fields.append(item)
+        self.__fields.append(form_field)
 
     def clear(self):
         """
@@ -83,20 +86,20 @@ class FormFieldCollection(MutableSequence):
 
         return [item for item in self.__fields]
 
-    def extend(self, items: List[FormField]):
+    def extend(self, form_fields: List[FormField]):
         """
         Append another collection of FormFields to this collection.
 
-        :param items: A collection of FormFields contained in a list or
+        :param form_fields: A collection of FormFields contained in a list or
             another FormFieldsCollection object.
         """
 
-        if isinstance(items, (Iterable, FormFieldCollection, )):
-            for item in items:
+        if isinstance(form_fields, (Iterable, FormFieldCollection, )):
+            for item in form_fields:
                 self.append(item)
 
         else:
-            self.__raise_type_error_expected(Iterable, items)
+            self.__raise_type_error_expected(Iterable, form_fields)
 
     def index(self, key) -> int:
         """
@@ -124,18 +127,18 @@ class FormFieldCollection(MutableSequence):
         elif isinstance(key, FormField):
             return self.__fields.index(key)
 
-    def insert(self, index, form_field: FormField):
+    def insert(self, key, form_field: FormField):
         """
         Insert a FormField object at the provided index.
 
-        :param index: An integer index, the string field name of an existing
+        :param key: An integer index, the string field name of an existing
             entry, or a tuple of the field name and value of an existing
             entry to insert the new object at.
 
         :param form_field: The form field object to be inserted.
         """
 
-        idx = self.index(index)
+        idx = self.index(key)
 
         self.__fields.insert(idx, form_field)
 
@@ -148,7 +151,7 @@ class FormFieldCollection(MutableSequence):
 
         Expensive operation, this requires object indexes to rebuild.
 
-        :para index: An integer, field name, or field name & value tuple to
+        :para key: An integer, field name, or field name & value tuple to
             remove from the collection.
         """
 
@@ -189,7 +192,7 @@ class FormFieldCollection(MutableSequence):
 
     def __refresh_index(self):
         """
-        Refreshes the objects indexes.
+        Refreshes the indexes.
         """
 
         self.__index_name.clear()
@@ -198,9 +201,11 @@ class FormFieldCollection(MutableSequence):
         for index in range(0, len(self.__fields)):
             self.__update_index(index)
 
+        self.__index_to_check = None
+
     def __update_index(self, key):
         """
-        Update the indexes with using the values found in self.__fields[key]
+        Update the indexes using the values found in self.__fields[key]
 
         :param key: Integer index of the FormField object create index for.
         """
@@ -214,6 +219,7 @@ class FormFieldCollection(MutableSequence):
         if key not in self.__index_name_value:
             self.__index_name_value[key] = key
 
+        # Reset the breadcrumb, the key has been updated/refreshed.
         if self.__index_to_check == key:
             self.__index_to_check = None
 
@@ -233,21 +239,31 @@ class FormFieldCollection(MutableSequence):
 
             self.__update_index(index)
 
-    def __eq__(self, item: 'FormFieldCollection') -> bool:
+    def __eq__(self, compare_to: 'FormFieldCollection') -> bool:
 
-        compare_to = [(field.name, field.value, ) for field in item]
-        return self.__index == compare_to
+        return not self.__ne__(compare_to)
 
-    def __add__(self, form_field_collection) -> 'FormFieldCollection':
+    def __ne__(self, compare_to: 'FormFieldCollection') -> bool:
+
+        if len(self) == len(compare_to):
+            return False
+
+        for index, form_field in enumerate(self):
+            if form_field == compare_to[index]:
+                return False
+
+        return True
+
+    def __add__(self, iterable: List[FormField]) -> 'FormFieldCollection':
         """
         Merge two collections together, returning a new collection from the
         merge.
 
-        :param items: The collection to be added to the this object's.
+        :param iterable: The collection to be added to the this object's.
         """
 
         new_collection = FormFieldCollection(self)
-        new_collection.extend(form_field_collection)
+        new_collection.extend(iterable)
 
         return new_collection
 
@@ -257,7 +273,7 @@ class FormFieldCollection(MutableSequence):
         index, a name (only first instance will be returned), or a field name
         & value provided in a tuple.
 
-        :param index: The index of the item to return from the collection.
+        :param key: The index of the item to return from the collection.
 
         :returns: The item at the given index.
         """
@@ -274,6 +290,11 @@ class FormFieldCollection(MutableSequence):
         return self.__fields[index]
 
     def __setitem__(self, key, newvalue: FormField):
+        """
+        Set an object at the given "key" or indexed location.
+
+        :param key: the index or key of the record to be set.
+        """
 
         idx = self.index(key)
 
@@ -283,4 +304,10 @@ class FormFieldCollection(MutableSequence):
         self.__update_index(idx)
 
     def __delitem__(self, key):
+        """
+        Remove the object at the given "key" or indexed location.
+
+        :param key: The idnex or key of the record to be deleted.
+        """
+
         self.remove(key)
