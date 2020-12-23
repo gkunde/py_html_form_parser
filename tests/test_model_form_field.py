@@ -27,6 +27,13 @@ class Test_FormFieldModel(unittest.TestCase):
 
         self.assertRaises(ValueError, FormField)
 
+    def test_init_is_selected_exception(self):
+        """
+        test name required on init
+        """
+
+        self.assertRaises(ValueError, FormField, "name", "value", None, None)
+
     def test_init_values(self):
         """
         test setting properties with initializer
@@ -44,27 +51,55 @@ class Test_FormFieldModel(unittest.TestCase):
         self.assertEqual(field_is_selected, obj.is_selected)
         self.assertEqual(field_binary_path, obj.binary_path)
 
-    def test_setters(self):
-        """
-        test setting properties directly
-        """
+    def test_set_name(self):
 
-        field_name = "fieldName"
-        field_name_altered = "alteredFieldname"
-        field_value = "test_value"
-        field_is_selected = False
-        field_binary_path = ""
+        new_value = "new_name"
 
-        obj = FormField(field_name)
-        obj.name = field_name_altered
-        obj.value = field_value
-        obj.is_selected = field_is_selected
-        obj.binary_path = field_binary_path
+        obj = FormField("")
+        obj.name = new_value
 
-        self.assertEqual(field_name_altered, obj.name)
-        self.assertEqual(field_value, obj.value)
-        self.assertEqual(field_is_selected, obj.is_selected)
-        self.assertEqual(field_binary_path, obj.binary_path)
+        self.assertEqual(new_value, obj.name)
+
+    def test_set_name_to_none_exception(self):
+
+        obj = FormField("")
+
+        self.assertRaises(ValueError, obj.__setattr__, "is_selected", None)
+
+    def test_set_value(self):
+
+        new_value = "test1234"
+
+        obj = FormField("")
+        obj.value = new_value
+
+        self.assertEqual(new_value, obj.value)
+
+    def test_set_is_selected(self):
+
+        new_value = False
+
+        obj = FormField("")
+        obj.is_selected = new_value
+
+        self.assertEqual(new_value, obj.is_selected)
+
+    def test_set_is_selected_to_none_exception(self):
+
+        new_value = None
+
+        obj = FormField("")
+
+        self.assertRaises(ValueError, obj.__setattr__, "is_selected", new_value)
+
+    def test_set_binary_path(self):
+
+        new_value = "test1234"
+
+        obj = FormField("")
+        obj.binary_path = new_value
+
+        self.assertEqual(new_value, obj.binary_path)
 
     def test_from_bs4(self):
         """
@@ -247,3 +282,307 @@ class Test_FormFieldModel(unittest.TestCase):
         self.assertEqual(attrs["value"], form_field["value"])
         self.assertTrue(form_field["is_selected"])
         self.assertIsNone(form_field["binary_path"])
+
+    def test_eq(self):
+
+        field0 = FormField("test1234", "4321stuff", False, "/example/path.txt")
+        field1 = FormField("test1234", "4321stuff", False, "/example/path.txt")
+
+        self.assertTrue(field0 == field1)
+        self.assertTrue(field1 == field0)
+
+    def test_eq_diff_name(self):
+
+        field0 = FormField("test1234", "4321stuff", False, "/example/path.txt")
+        field1 = FormField("test1235", "4321stuff", False, "/example/path.txt")
+
+        self.assertFalse(field0 == field1)
+        self.assertFalse(field1 == field0)
+
+    def test_eq_diff_value(self):
+
+        field0 = FormField("test1234", "4321stuff", False, "/example/path.txt")
+        field1 = FormField("test1234", "5321stuff", False, "/example/path.txt")
+
+        self.assertFalse(field0 == field1)
+        self.assertFalse(field1 == field0)
+
+    def test_eq_diff_selected(self):
+
+        field0 = FormField("test1234", "4321stuff", False, "/example/path.txt")
+        field1 = FormField("test1234", "4321stuff", True, "/example/path.txt")
+
+        self.assertFalse(field0 == field1)
+        self.assertFalse(field1 == field0)
+
+    def test_eq_diff_path(self):
+
+        field0 = FormField("test1234", "4321stuff", False, "/example/path.txt")
+        field1 = FormField("test1234", "4321stuff", False, "/example/path.doc")
+
+        self.assertFalse(field0 == field1)
+        self.assertFalse(field1 == field0)
+
+    def test_ne_diff_name(self):
+
+        field0 = FormField("test1234", "4321stuff", False, "/example/path.txt")
+        field1 = FormField("test1235", "4321stuff", False, "/example/path.txt")
+
+        self.assertTrue(field0 != field1)
+        self.assertTrue(field1 != field0)
+
+    def test_ne_diff_value(self):
+
+        field0 = FormField("test1234", "4321stuff", False, "/example/path.txt")
+        field1 = FormField("test1234", "5321stuff", False, "/example/path.txt")
+
+        self.assertTrue(field0 != field1)
+        self.assertTrue(field1 != field0)
+
+    def test_ne_diff_selected(self):
+
+        field0 = FormField("test1234", "4321stuff", False, "/example/path.txt")
+        field1 = FormField("test1234", "4321stuff", True, "/example/path.txt")
+
+        self.assertTrue(field0 != field1)
+        self.assertTrue(field1 != field0)
+
+    def test_ne_diff_path(self):
+
+        field0 = FormField("test1234", "4321stuff", False, "/example/path.txt")
+        field1 = FormField("test1234", "4321stuff", False, "/example/path.doc")
+
+        self.assertTrue(field0 != field1)
+        self.assertTrue(field1 != field0)
+
+    def test_ne_false(self):
+
+        field0 = FormField("test1234", "4321stuff", False, "/example/path.txt")
+        field1 = FormField("test1234", "4321stuff", False, "/example/path.txt")
+
+        self.assertFalse(field0 != field1)
+        self.assertFalse(field1 != field0)
+
+    def test_lt_by_name(self):
+
+        field0 = FormField("aaaaaa", "bbbbbb", True, "/example/path.txt")
+        field1 = FormField("aaaaab", "bbbbbb", True, "/example/path.txt")
+
+        self.assertTrue(field0 < field1)
+        self.assertFalse(field1 < field0)
+
+    def test_lt_by_value(self):
+
+        field0 = FormField("aaaaaa", "bbbbbb", True, "/example/path.txt")
+        field1 = FormField("aaaaaa", "bbbbbc", True, "/example/path.txt")
+
+        self.assertTrue(field0 < field1)
+        self.assertFalse(field1 < field0)
+
+    def test_lt_by_is_selected(self):
+
+        field0 = FormField("aaaaaa", "bbbbbb", False, "/example/path.txt")
+        field1 = FormField("aaaaaa", "bbbbbb", True, "/example/path.txt")
+
+        self.assertTrue(field0 < field1)
+        self.assertFalse(field1 < field0)
+
+    def test_lt_by_binary_path(self):
+
+        field0 = FormField("aaaaaa", "bbbbbb", True, "/example/path.aaa")
+        field1 = FormField("aaaaaa", "bbbbbb", True, "/example/path.aab")
+
+        self.assertTrue(field0 < field1)
+        self.assertFalse(field1 < field0)
+
+    def test_lt_by_name_with_none(self):
+
+        field0 = FormField("aaaaaa", None, True, None)
+        field1 = FormField("aaaaab", None, True, None)
+
+        self.assertTrue(field0 < field1)
+        self.assertFalse(field1 < field0)
+
+    def test_lt_by_is_selected_with_none(self):
+
+        field0 = FormField("aaaaaa", None, False, None)
+        field1 = FormField("aaaaaa", None, True, None)
+
+        self.assertTrue(field0 < field1)
+        self.assertFalse(field1 < field0)
+
+    def test_lt_by_equal(self):
+
+        field0 = FormField("aaaaaa", None, True, None)
+        field1 = FormField("aaaaaa", None, True, None)
+
+        self.assertFalse(field0 < field1)
+        self.assertFalse(field1 < field0)
+
+    def test_gt_by_name(self):
+
+        field0 = FormField("aaaaab", "bbbbbb", True, "/example/path.txt")
+        field1 = FormField("aaaaaa", "bbbbbb", True, "/example/path.txt")
+
+        self.assertTrue(field0 > field1)
+        self.assertFalse(field1 > field0)
+
+    def test_gt_by_value(self):
+
+        field0 = FormField("aaaaaa", "bbbbbc", True, "/example/path.txt")
+        field1 = FormField("aaaaaa", "bbbbbb", True, "/example/path.txt")
+
+        self.assertTrue(field0 > field1)
+        self.assertFalse(field1 > field0)
+
+    def test_gt_by_is_selected(self):
+
+        field0 = FormField("aaaaaa", "bbbbbb", True, "/example/path.txt")
+        field1 = FormField("aaaaaa", "bbbbbb", False, "/example/path.txt")
+
+        self.assertTrue(field0 > field1)
+        self.assertFalse(field1 > field0)
+
+    def test_gt_by_binary_path(self):
+
+        field0 = FormField("aaaaaa", "bbbbbb", True, "/example/path.aab")
+        field1 = FormField("aaaaaa", "bbbbbb", True, "/example/path.aaa")
+
+        self.assertTrue(field0 > field1)
+        self.assertFalse(field1 > field0)
+
+    def test_gt_by_name_with_none(self):
+
+        field0 = FormField("aaaaab", None, True, None)
+        field1 = FormField("aaaaaa", None, True, None)
+
+        self.assertTrue(field0 > field1)
+        self.assertFalse(field1 > field0)
+
+    def test_gt_by_is_selected_with_none(self):
+
+        field0 = FormField("aaaaaa", None, True, None)
+        field1 = FormField("aaaaaa", None, False, None)
+
+        self.assertTrue(field0 > field1)
+        self.assertFalse(field1 > field0)
+
+    def test_gt_equal(self):
+
+        field0 = FormField("aaaaaa", None, True, None)
+        field1 = FormField("aaaaaa", None, True, None)
+
+        self.assertFalse(field0 > field1)
+        self.assertFalse(field1 > field0)
+
+    def test_le_by_name(self):
+
+        field0 = FormField("aaaaaa", "bbbbbb", True, "/example/path.txt")
+        field1 = FormField("aaaaab", "bbbbbb", True, "/example/path.txt")
+
+        self.assertTrue(field0 <= field1)
+        self.assertFalse(field1 <= field0)
+
+    def test_le_by_value(self):
+
+        field0 = FormField("aaaaaa", "bbbbbb", True, "/example/path.txt")
+        field1 = FormField("aaaaaa", "bbbbbc", True, "/example/path.txt")
+
+        self.assertTrue(field0 <= field1)
+        self.assertFalse(field1 <= field0)
+
+    def test_le_by_is_selected(self):
+
+        field0 = FormField("aaaaaa", "bbbbbb", False, "/example/path.txt")
+        field1 = FormField("aaaaaa", "bbbbbb", True, "/example/path.txt")
+
+        self.assertTrue(field0 <= field1)
+        self.assertFalse(field1 <= field0)
+
+    def test_le_by_binary_path(self):
+
+        field0 = FormField("aaaaaa", "bbbbbb", True, "/example/path.aaa")
+        field1 = FormField("aaaaaa", "bbbbbb", True, "/example/path.aab")
+
+        self.assertTrue(field0 <= field1)
+        self.assertFalse(field1 <= field0)
+
+    def test_le_by_name_with_none(self):
+
+        field0 = FormField("aaaaaa", None, True, None)
+        field1 = FormField("aaaaab", None, True, None)
+
+        self.assertTrue(field0 <= field1)
+        self.assertFalse(field1 <= field0)
+
+    def test_le_by_is_selected_with_none(self):
+
+        field0 = FormField("aaaaaa", None, False, None)
+        field1 = FormField("aaaaaa", None, True, None)
+
+        self.assertTrue(field0 <= field1)
+        self.assertFalse(field1 <= field0)
+
+    def test_le_equal(self):
+
+        field0 = FormField("aaaaaa", None, True, None)
+        field1 = FormField("aaaaaa", None, True, None)
+
+        self.assertTrue(field0 <= field1)
+        self.assertTrue(field1 <= field0)
+
+    def test_ge_by_name(self):
+
+        field0 = FormField("aaaaab", "bbbbbb", True, "/example/path.txt")
+        field1 = FormField("aaaaaa", "bbbbbb", True, "/example/path.txt")
+
+        self.assertTrue(field0 >= field1)
+        self.assertFalse(field1 >= field0)
+
+    def test_ge_by_value(self):
+
+        field0 = FormField("aaaaaa", "bbbbbc", True, "/example/path.txt")
+        field1 = FormField("aaaaaa", "bbbbbb", True, "/example/path.txt")
+
+        self.assertTrue(field0 >= field1)
+        self.assertFalse(field1 >= field0)
+
+    def test_ge_by_is_selected(self):
+
+        field0 = FormField("aaaaaa", "bbbbbb", True, "/example/path.txt")
+        field1 = FormField("aaaaaa", "bbbbbb", False, "/example/path.txt")
+
+        self.assertTrue(field0 >= field1)
+        self.assertFalse(field1 >= field0)
+
+    def test_ge_by_binary_path(self):
+
+        field0 = FormField("aaaaaa", "bbbbbb", True, "/example/path.aab")
+        field1 = FormField("aaaaaa", "bbbbbb", True, "/example/path.aaa")
+
+        self.assertTrue(field0 >= field1)
+        self.assertFalse(field1 >= field0)
+
+    def test_ge_by_name_with_none(self):
+
+        field0 = FormField("aaaaab", None, True, None)
+        field1 = FormField("aaaaaa", None, True, None)
+
+        self.assertTrue(field0 >= field1)
+        self.assertFalse(field1 >= field0)
+
+    def test_ge_by_is_selected_with_none(self):
+
+        field0 = FormField("aaaaaa", None, True, None)
+        field1 = FormField("aaaaaa", None, False, None)
+
+        self.assertTrue(field0 >= field1)
+        self.assertFalse(field1 >= field0)
+
+    def test_ge_equal(self):
+
+        field0 = FormField("aaaaaa", None, True, None)
+        field1 = FormField("aaaaaa", None, True, None)
+
+        self.assertTrue(field0 >= field1)
+        self.assertTrue(field1 >= field0)

@@ -88,6 +88,8 @@ class FormField:
 
     @is_selected.setter
     def is_selected(self, value):
+        if value is None:
+            raise ValueError("is_selected must not be None")
         self._is_selected = value == True
 
     @property
@@ -211,6 +213,9 @@ class FormField:
         return self.to_dict()
 
     def __eq__(self, compare_to: 'FormField') -> bool:
+        """
+        Evaluate properties to determine equality.
+        """
 
         if self.name != compare_to.name:
             return False
@@ -224,6 +229,10 @@ class FormField:
         return True
 
     def __lt__(self, compare_to: 'FormField') -> bool:
+        """
+        Evaluate properties, in order of importance, to determine inequality
+        of less than.
+        """
 
         if self == compare_to:
             return False
@@ -231,10 +240,17 @@ class FormField:
         if self.name < compare_to.name:
             return True
 
-        if self.value < compare_to.value:
+        # Choosing not to evaluate the property "value" if either is None.
+        if self.value is not None \
+                and compare_to.value is not None \
+                and self.value < compare_to.value:
             return True
 
-        if self.binary_path < compare_to.binary_path:
+        # Choosing not to evaluate the property "binary_path" if either
+        # is None.
+        if self.binary_path is not None \
+                and compare_to.value is not None \
+                and self.binary_path < compare_to.binary_path:
             return True
 
         if self.is_selected < compare_to.is_selected:
@@ -243,6 +259,10 @@ class FormField:
         return False
 
     def __gt__(self, compare_to: 'FormField') -> bool:
+        """
+        Evaluate properties, in order of importance, to determine inequality
+        of greater than.
+        """
 
         if self == compare_to:
             return False
@@ -250,10 +270,17 @@ class FormField:
         if self.name > compare_to.name:
             return True
 
-        if self.value > compare_to.value:
+        # Choosing not to evaluate the property "value" if either is None.
+        if self.value is not None \
+                and compare_to.value is not None \
+                and self.value > compare_to.value:
             return True
 
-        if self.binary_path > compare_to.binary_path:
+        # Choosing not to evaluate the property "binary_path" if either
+        # is None.
+        if self.binary_path is not None \
+                and compare_to.binary_path is not None \
+                and self.binary_path > compare_to.binary_path:
             return True
 
         if self.is_selected > compare_to.is_selected:
@@ -262,6 +289,10 @@ class FormField:
         return False
 
     def __le__(self, compare_to: 'FormField') -> bool:
+        """
+        Evaluate properties, in order of importance, to determine equality or
+        less than.
+        """
 
         if self == compare_to:
             return True
@@ -269,12 +300,18 @@ class FormField:
         return self < compare_to
 
     def __ge__(self, compare_to: 'FormField') -> bool:
+        """
+        Evaluate properties, in order of importance, to determine equality or
+        greater than.
+        """
 
         if self == compare_to:
             return True
-        
-        return self > compare_to
-    
-    def __ne__(self, compare_to: 'FormField') -> bool:
 
+        return self > compare_to
+
+    def __ne__(self, compare_to: 'FormField') -> bool:
+        """
+        Evaluate properties to determine inequality.
+        """
         return not (self == compare_to)
