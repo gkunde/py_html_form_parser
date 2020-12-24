@@ -25,14 +25,19 @@ class Test_FormFieldModel(unittest.TestCase):
         test name required on init
         """
 
-        self.assertRaises(ValueError, FormField)
+        with self.assertRaises(ValueError) as cm:
+            _ = FormField()
 
-    def test_init_is_selected_exception(self):
+        self.assertTrue('name must not be None' in cm.exception.args)
+
+    def test_init_is_selected_none(self):
         """
         test name required on init
         """
 
-        self.assertRaises(ValueError, FormField, "name", "value", None, None)
+        obj = FormField("name", "value", None, None)
+
+        self.assertFalse(obj.is_selected)
 
     def test_init_values(self):
         """
@@ -64,7 +69,10 @@ class Test_FormFieldModel(unittest.TestCase):
 
         obj = FormField("")
 
-        self.assertRaises(ValueError, obj.__setattr__, "is_selected", None)
+        with self.assertRaises(ValueError) as cm:
+            obj.name = None
+
+        self.assertTrue('name must not be None' in cm.exception.args)
 
     def test_set_value(self):
 
@@ -75,6 +83,15 @@ class Test_FormFieldModel(unittest.TestCase):
 
         self.assertEqual(new_value, obj.value)
 
+    def test_set_value_none(self):
+
+        new_value = None
+
+        obj = FormField("")
+        obj.value = new_value
+
+        self.assertEqual("", obj.value)
+
     def test_set_is_selected(self):
 
         new_value = False
@@ -84,13 +101,14 @@ class Test_FormFieldModel(unittest.TestCase):
 
         self.assertEqual(new_value, obj.is_selected)
 
-    def test_set_is_selected_to_none_exception(self):
+    def test_set_is_selected_none(self):
 
         new_value = None
 
         obj = FormField("")
+        obj.is_selected = new_value
 
-        self.assertRaises(ValueError, obj.__setattr__, "is_selected", new_value)
+        self.assertFalse(obj.is_selected)
 
     def test_set_binary_path(self):
 
@@ -131,6 +149,7 @@ class Test_FormFieldModel(unittest.TestCase):
         """
 
         tag_name = "p"
+        expected_exception_msg = "Invalid HTML tag: '%s'" % (tag_name, )
 
         attrs = {
             "type": "text",
@@ -143,7 +162,10 @@ class Test_FormFieldModel(unittest.TestCase):
 
         bs4parser = BeautifulSoup(field, "html5lib").find(tag_name)
 
-        self.assertRaises(ValueError, FormField.from_bs4, bs4parser)
+        with self.assertRaises(ValueError) as cm:
+            FormField.from_bs4(bs4parser)
+
+        self.assertTrue(expected_exception_msg in cm.exception.args)
 
     def test_from_bs4_textarea_notext(self):
         """

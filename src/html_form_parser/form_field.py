@@ -20,6 +20,8 @@ def parse_int(value: str, default: int = None) -> int:
 
         try:
             result = int(value)
+        except TypeError:
+            result = default
         except ValueError:
             result = default
 
@@ -88,8 +90,6 @@ class FormField:
 
     @is_selected.setter
     def is_selected(self, value):
-        if value is None:
-            raise ValueError("is_selected must not be None")
         self._is_selected = value == True
 
     @property
@@ -204,12 +204,23 @@ class FormField:
 
     @classmethod
     def from_dict(cls, value: dict) -> 'FormField':
+        """
+        Generate a FormField object from a dictionary
+
+        Required dictionary keys are: name, value, is_selected, binary_path
+        """
         return cls(value["name"], value["value"], value["is_selected"], value["binary_path"])
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
+        """
+        Converts the contents of the FormField object to a dictionary.
+        """
         return {"name": self.name, "value": self.value, "is_selected": self.is_selected, "binary_path": self.binary_path}
 
     def __dict__(self):
+        """
+        Calls on .to_dict()
+        """
         return self.to_dict()
 
     def __eq__(self, compare_to: 'FormField') -> bool:
