@@ -16,7 +16,7 @@ setuptools.setup(
     name="html_form_parser", # Replace with your own username
     version="0.0.1",
     author="Garrett Kunde",
-    author_email="null",
+    author_email="https://github.com/gkunde/py_html_form_parser/issues",
     description="Static HTML Form Parser",
     long_description=long_description,
     long_description_content_type="text/markdown",
