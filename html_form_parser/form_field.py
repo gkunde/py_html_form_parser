@@ -43,10 +43,10 @@ class FormField:
         the file to submit.
     """
 
+    FIELD_ELEMENTS = ("button", "input", "select", "textarea", )
+
     _SELECTABLE_INPUTS = ("checkbox", "radio", )
     _BUTTON_TYPES = ("image", "reset", "search", "submit", )
-    _IGNORED_TYPES = ("reset", "search", )
-    VALID_FIELDS = ("button", "input", "select", "textarea", )
     DEFAULT_INPUT_TYPE = "text"
     DEFAULT_BUTTON_TYPE = "submit"
 
@@ -121,15 +121,11 @@ class FormField:
         tag = bs4parser.name
         tag_type = bs4parser.attrs.get("type", cls.DEFAULT_INPUT_TYPE).lower()
 
-        if tag not in cls.VALID_FIELDS:
+        if tag not in cls.FIELD_ELEMENTS:
             raise ValueError("Invalid HTML tag: '%s'" % (tag, ))
 
         if tag == "button":
             tag_type = bs4parser.attrs.get("type", "submit").lower()
-
-        if tag_type in cls._IGNORED_TYPES:
-            # these types are never submitted with form fields
-            return results
 
         name = bs4parser.attrs.get("name", None)
         value = bs4parser.attrs.get("value", None)
@@ -152,7 +148,7 @@ class FormField:
 
                 is_selected = bs4parser.has_attr("checked")
 
-            elif tag_type == "submit":
+            elif tag_type in cls._BUTTON_TYPES:
                 # buttons are selected when "clicked"
                 is_selected = False
 
@@ -209,13 +205,13 @@ class FormField:
 
         Required dictionary keys are: name, value, is_selected, binary_path
         """
-        return cls(value["name"], value["value"], value["is_selected"], value["binary_path"])
+        return cls(value["name"], value["value"], value["@is_selected"], value["binary_path"])
 
     def to_dict(self) -> dict:
         """
         Converts the contents of the FormField object to a dictionary.
         """
-        return {"name": self.name, "value": self.value, "is_selected": self.is_selected, "binary_path": self.binary_path}
+        return {"name": self.name, "value": self.value, "@is_selected": self.is_selected, "binary_path": self.binary_path}
 
     def __dict__(self):
         """

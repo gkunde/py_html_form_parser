@@ -272,7 +272,7 @@ class Test_FormFieldModel(unittest.TestCase):
         attrs = {
             "name": "test1234",
             "value": "1234TEST",
-            "is_selected": False,
+            "@is_selected": False,
             "binary_path": None
         }
 
@@ -297,12 +297,12 @@ class Test_FormFieldModel(unittest.TestCase):
 
         self.assertIn("name", form_field)
         self.assertIn("value", form_field)
-        self.assertIn("is_selected", form_field)
+        self.assertIn("@is_selected", form_field)
         self.assertIn("binary_path", form_field)
 
         self.assertEqual(attrs["name"], form_field["name"])
         self.assertEqual(attrs["value"], form_field["value"])
-        self.assertTrue(form_field["is_selected"])
+        self.assertTrue(form_field["@is_selected"])
         self.assertIsNone(form_field["binary_path"])
 
     def test_eq(self):
