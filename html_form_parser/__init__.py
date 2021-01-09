@@ -9,6 +9,18 @@ from .form_field_collection import FormFieldCollection
 
 class Form:
     """
+    Creates a HTML form instance providing access to form attributes and form
+    fields contained within the form. The first encountered form is parsed by
+    default, while providing a name will search for a form of that name to be
+    parsed instead.
+
+    Primary attributes are provided as readonly properties, access to
+    non-essential form attributes are available in the _attributes property.
+
+    Form field elements are parsed into a collection provided by the fields
+    property. Note, form controls buttons for "reset" and "search" are not
+    captured.
+
     :param html: A string containing HTML markup.
 
     :param name: Specific form to parse from the HTML, None will default to
