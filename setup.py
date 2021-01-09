@@ -13,20 +13,25 @@ if os.path.isfile(required_packages_path):
         required_packages = [entry.strip() for entry in fh.readlines()]
 
 setuptools.setup(
-    name="html_form_parser", # Replace with your own username
-    version="0.0.1",
+    name="html_form_parser",
+    version="0.0.2",
     author="Garrett Kunde",
-    author_email="https://github.com/gkunde/py_html_form_parser/issues",
+    author_email="https://www.github.com/gkunde/py_html_form_parser/issues",
     description="Static HTML Form Parser",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/gkunde/py_html_form_parser",
     packages=setuptools.find_packages(),
     classifiers=[
-        "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
+        'Development Status :: 3 - Alpha',
+        "Programming Language :: Python :: 3.6",
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
-    install_requires=required_packages
+    install_requires=required_packages,
+    project_urls={
+        'Source': "https://www.github.com/gkunde/py_html_form_parser/",
+        'Bug Reports': "https://www.github.com/gkunde/py_html_form_parser/issues",
+    }
 )
