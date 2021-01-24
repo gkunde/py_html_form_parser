@@ -10,6 +10,7 @@ class FormElementParser:
     A parser for HTML form elements.
     """
 
+    # A series of class constants that can be overridden by derived classes.
     DEFAULT_NAME = None
     DEFAULT_VALUE = None
     DEFAULT_TYPE = None
@@ -18,7 +19,7 @@ class FormElementParser:
     def _make_bs4_parser(self, html: str) -> BeautifulSoup:
         """
         Creates a BeautifulSoup parser object for the given HTML fragment.
-        Assumes if an HTML fragment is provided, the fragment is the targetted
+        Assumes if an HTML fragment is provided, the fragment is the desired
         tag to be parsed.
         """
 
@@ -34,22 +35,24 @@ class FormElementParser:
 
     def _get_value_attr(self, bs4_parser: BeautifulSoup) -> str:
         """
-        Returns the element's "value" attribute value. Defaults to None when
-        attribute is not found.
+        Returns the element's "value" attribute value. Defaults to class
+        constant DEFAULT_VALUE when attribute is not defined.
         """
 
         return bs4_parser.attrs.get("value", self.DEFAULT_VALUE)
 
     def _get_name_attr(self, bs4_parser: BeautifulSoup) -> str:
         """
-        Returns the element's "name" attribute value. Defaults to None when
-        attribute is not found.
+        Returns the element's "name" attribute value. Defaults to class
+        constant DEFAULT_NAME when attribute is not defined.
         """
 
         return bs4_parser.attrs.get("name", self.DEFAULT_NAME)
 
     def _get_type_attr(self, bs4_parser: BeautifulSoup) -> str:
         """
+        Returns the element's "type" attrbute value. Defaults to class
+        constant DEFAULT_TYPE when attribute is not defined.
         """
 
         return bs4_parser.attrs.get("type", self.DEFAULT_TYPE)
@@ -71,6 +74,9 @@ class FormElementParser:
 
     def parse(self, html: str) -> List[FormElement]:
         """
+        Parse an HTML form element tag and generates a collection of form
+        elements. A collection is returned as some elements such as "select"
+        have multiple options.
         """
 
         bs4_parser = self._make_bs4_parser(html)
