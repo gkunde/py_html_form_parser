@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Support is limited to the committed code found in this repository.
+Support is limited to the most recently committed code found in this repository.
 
 ## Reporting a Vulnerability
 
