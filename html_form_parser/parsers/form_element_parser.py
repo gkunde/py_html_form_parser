@@ -11,12 +11,58 @@ class FormElementParser:
     """
 
     # A series of class constants that can be overridden by derived classes.
-    DEFAULT_NAME = None
-    DEFAULT_VALUE = None
-    DEFAULT_TYPE = None
-    DEFAULT_IS_SELECTED = True
+    _default_name = None
+    _default_value = None
+    _default_type = None
+    _default_is_selected = True
 
-    def _make_bs4_parser(self, html: str) -> BeautifulSoup:
+    __suitable_tags = ("button", "input", "select", "textarea", )
+
+    def parse(self, html: str) -> List[FormElement]:
+        """
+        Parse an HTML form element tag and generates a collection of form
+        elements. A collection is returned as some elements such as "select"
+        have multiple options.
+
+        :param html: A string containing only the HTML tag, or a Beautiful
+            Soup object of the tag.
+        """
+
+        bs4_parser = self._make_bs4_parser(html)
+
+        primary_type = self._get_tag_name(bs4_parser)
+        secondary_type = self._get_type_attr(bs4_parser)
+
+        attribute_name = self._get_name_attr(bs4_parser)
+        attribute_value = self._get_value_attr(bs4_parser)
+        attribute_selected = self._get_selected_state(bs4_parser)
+        attribute_binary_path = None
+
+        form_element = FormElement(
+            name=attribute_name,
+            value=attribute_value,
+            binary_path=attribute_binary_path,
+            is_selected=attribute_selected,
+            tag_name=primary_type,
+            type_attribute=secondary_type)
+
+        return [form_element, ]
+
+    def suitable(self, tag_name: str, type_attribute: str) -> bool:
+        """
+        Determine if the parser is appropriate for the given HTML element tag
+        and type.
+
+        :param tag_name: The HTML element name
+
+        :param type_attribute: The HTML element "type" attribute. If no
+            attribute is present, provide None.
+        """
+
+        # This parser works for all form element types.
+        return tag_name in self.__suitable_tags
+
+    def _make_bs4_parser(self, html: str) -> 'bs4.Tag':
         """
         Creates a BeautifulSoup parser object for the given HTML fragment.
         Assumes if an HTML fragment is provided, the fragment is the desired
@@ -33,63 +79,44 @@ class FormElementParser:
 
         return bs4_parser
 
-    def _get_value_attr(self, bs4_parser: BeautifulSoup) -> str:
+    def _get_value_attr(self, bs4_parser: 'bs4.Tag') -> str:
         """
         Returns the element's "value" attribute value. Defaults to class
         constant DEFAULT_VALUE when attribute is not defined.
         """
 
-        return bs4_parser.attrs.get("value", self.DEFAULT_VALUE)
+        return bs4_parser.attrs.get("value", self._default_value)
 
-    def _get_name_attr(self, bs4_parser: BeautifulSoup) -> str:
+    def _get_name_attr(self, bs4_parser: 'bs4.Tag') -> str:
         """
         Returns the element's "name" attribute value. Defaults to class
         constant DEFAULT_NAME when attribute is not defined.
         """
 
-        return bs4_parser.attrs.get("name", self.DEFAULT_NAME)
+        return bs4_parser.attrs.get("name", self._default_name)
 
-    def _get_type_attr(self, bs4_parser: BeautifulSoup) -> str:
+    def _get_type_attr(self, bs4_parser: 'bs4.Tag') -> str:
         """
         Returns the element's "type" attrbute value. Defaults to class
         constant DEFAULT_TYPE when attribute is not defined.
         """
 
-        return bs4_parser.attrs.get("type", self.DEFAULT_TYPE)
+        return bs4_parser.attrs.get("type", self._default_type)
 
-    def _get_selected_state(self, bs4_parser: BeautifulSoup) -> bool:
+    def _get_selected_state(self, bs4_parser: 'bs4.Tag') -> bool:
         """
         Returns the elements "selected" status. Always returns true for
         unspecified form elements.
         """
 
-        return self.DEFAULT_IS_SELECTED
+        return self._default_is_selected
 
-    def _get_element_type(self, bs4_parser: BeautifulSoup) -> str:
+    def _get_tag_name(self, bs4_parser: 'bs4.Tag') -> str:
         """
         Returns the element's name/type
         """
 
         return bs4_parser.name
-
-    def parse(self, html: str) -> List[FormElement]:
-        """
-        Parse an HTML form element tag and generates a collection of form
-        elements. A collection is returned as some elements such as "select"
-        have multiple options.
-        """
-
-        bs4_parser = self._make_bs4_parser(html)
-
-        primary_type = self._get_element_type(bs4_parser)
-        secondary_type = self._get_type_attr(bs4_parser)
-
-        attribute_name = self._get_name_attr(bs4_parser)
-        attribute_value = self._get_value_attr(bs4_parser)
-        attribute_selected = self._get_selected_state(bs4_parser)
-        attribute_binary_path = None
-
-        return [FormElement(attribute_name, attribute_value, attribute_binary_path, attribute_selected, primary_type, secondary_type), ]
 
 
 class ButtonFormElementParser(FormElementParser):
@@ -98,10 +125,23 @@ class ButtonFormElementParser(FormElementParser):
     """
 
     # Button default type is submit when undefined.
-    DEFAULT_TYPE = "submit"
+    _default_type = "submit"
 
     # Buttons require user activation to be "selected"
-    DEFAULT_IS_SELECTED = False
+    _default_is_selected = False
+
+    def suitable(self, tag_name: str, type_attribute: str) -> bool:
+        """
+        Determine if the parser is appropriate for the given HTML element tag
+        and type.
+
+        :param tag_name: The HTML element name
+
+        :param type_attribute: The HTML element "type" attribute. If no
+            attribute is present, provide None.
+        """
+
+        return tag_name == "button"
 
 
 class InputFormElementParser(FormElementParser):
@@ -110,29 +150,28 @@ class InputFormElementParser(FormElementParser):
     """
 
     # Inputs without a defined type are defaulted to text
-    DEFAULT_TYPE = "text"
+    _default_type = "text"
 
     # Inputs are defaulted to text, which implies the default value will be blank.
-    DEFAULT_VALUE = ""
+    _default_value = ""
+
+    def suitable(self, tag_name: str, type_attribute: str) -> bool:
+        """
+        Determine if the parser is appropriate for the given HTML element tag
+        and type.
+
+        :param tag_name: The HTML element name
+
+        :param type_attribute: The HTML element "type" attribute. If no
+            attribute is present, provide None.
+        """
+
+        return tag_name == "input"
 
 
 class SelectFormElementParser(FormElementParser):
 
-    DEFAULT_IS_SELECTED = False
-
-    def _get_selected_state(self, bs4_parser: BeautifulSoup) -> bool:
-        """
-        Overrides base class to use element's "selected" attribute.
-        """
-
-        return bs4_parser.has_attr("selected")
-
-    def _get_value_attr(self, bs4_parser: BeautifulSoup) -> str:
-        """
-        Overrides base class to get element's "value" attribute or text value.
-        """
-
-        return bs4_parser.attrs.get("value", bs4_parser.get_text())
+    _default_is_selected = False
 
     def parse(self, html: str) -> List[FormElement]:
         """
@@ -148,7 +187,7 @@ class SelectFormElementParser(FormElementParser):
         for option in bs4_parser.find_all("option"):
 
             primary_type = bs4_parser.name
-            secondary_type = self.DEFAULT_TYPE
+            secondary_type = self._default_type
             name = self._get_name_attr(bs4_parser)
             value = self._get_value_attr(option)
             is_selected = self._get_selected_state(option)
@@ -164,33 +203,90 @@ class SelectFormElementParser(FormElementParser):
 
         return elements
 
+    def suitable(self, tag_name: str, type_attribute: str) -> bool:
+        """
+        Determine if the parser is appropriate for the given HTML element tag
+        and type.
+
+        :param tag_name: The HTML element name
+
+        :param type_attribute: The HTML element "type" attribute. If no
+            attribute is present, provide None.
+        """
+
+        return tag_name == "select"
+
+    def _get_selected_state(self, bs4_parser: 'bs4.Tag') -> bool:
+        """
+        Overrides base class to use element's "selected" attribute.
+        """
+
+        return bs4_parser.has_attr("selected")
+
+    def _get_value_attr(self, bs4_parser: 'bs4.Tag') -> str:
+        """
+        Overrides base class to get element's "value" attribute or text value.
+        """
+
+        return bs4_parser.attrs.get("value", bs4_parser.get_text())
+
 
 class TextareaFormElementParser(FormElementParser):
     """
     Parser for HTML textarea elements.
     """
 
-    DEFAULT_VALUE = ""
+    _default_value = ""
 
-    def _get_value_attr(self, bs4_parser: BeautifulSoup) -> str:
+    def suitable(self, tag_name: str, type_attribute: str) -> bool:
         """
-        Overrides FormElementParser, to get the value from the element's
+        Determine if the parser is appropriate for the given HTML element tag
+        and type.
+
+        :param tag_name: The HTML element name
+
+        :param type_attribute: The HTML element "type" attribute. If no
+            attribute is present, provide None.
+        """
+
+        return tag_name == "textarea"
+
+    def _get_value_attr(self, bs4_parser: 'bs4.Tag') -> str:
+        """
+        Overrides base classs to get the value from the element's
         .get_text() method.
+
+        :param bs4_parser: A Beautiful Soup object, or object containing a get
         """
 
-        return (bs4_parser.get_text() or self.DEFAULT_VALUE)
+        return (bs4_parser.get_text() or self._default_value)
 
 
-class CheckboxInputFormElementParser(InputFormElementParser):
+class SelectableInputFormElementParser(InputFormElementParser):
     """
     A parser for HTML form input elements of type "checkbox" or "radio"
     """
 
-    DEFAULT_TYPE = "checkbox"
-    DEFAULT_VALUE = "on"
-    DEFAULT_IS_SELECTED = False
+    _default_type = "checkbox"
+    _default_value = "on"
+    _default_is_selected = False
 
-    def _get_selected_state(self, bs4_parser: BeautifulSoup) -> bool:
+    __suitable_types = ("checkbox", "radio", )
+
+    def suitable(self, tag_name: str, type_attribute: str) -> bool:
+        """
+        Determine if the parser is appropriate for the given HTML element tag
+        and type.
+
+        :param tag_name: The HTML element name
+
+        :param type_attribute: The HTML element "type" attribute. If no
+            attribute is present, provide None.
+        """
+
+        return tag_name == "input" and type_attribute in self.__suitable_types
+
+    def _get_selected_state(self, bs4_parser: 'bs4.Tag') -> bool:
         """
         Overrides the base class to return the actual "checked" state of the
         element.
@@ -204,16 +300,21 @@ class ColorInputFormElementParser(InputFormElementParser):
     Parser for HTML input elements of type "color"
     """
 
-    DEFAULT_TYPE = "color"
-    DEFAULT_VALUE = "#000000"
+    _default_type = "color"
+    _default_value = "#000000"
 
+    def suitable(self, tag_name: str, type_attribute: str) -> bool:
+        """
+        Determine if the parser is appropriate for the given HTML element tag
+        and type.
 
-class RadioInputFormElementParser(CheckboxInputFormElementParser):
-    """
-    A parser for HTML form input elements of type "checkbox" or "radio"
-    """
-    # This has the same functionality as a checkbox
-    DEFAULT_TYPE = "radio"
+        :param tag_name: The HTML element name
+
+        :param type_attribute: The HTML element "type" attribute. If no
+            attribute is present, provide None.
+        """
+
+        return tag_name == "input" and type_attribute == "color"
 
 
 class RangeInputFormElementParser(InputFormElementParser):
@@ -221,9 +322,23 @@ class RangeInputFormElementParser(InputFormElementParser):
     Parser for HTML input elements of type "range"
     """
 
-    DEFAULT_TYPE = "range"
-    DEFAULT_MIN_VALUE = 0
-    DEFAULT_MAX_VALUE = 100
+    _default_type = "range"
+
+    __default_min_value = 0
+    __default_max_value = 100
+
+    def suitable(self, tag_name: str, type_attribute: str) -> bool:
+        """
+        Determine if the parser is appropriate for the given HTML element tag
+        and type.
+
+        :param tag_name: The HTML element name
+
+        :param type_attribute: The HTML element "type" attribute. If no
+            attribute is present, provide None.
+        """
+
+        return tag_name == "input" and type_attribute == "range"
 
     def _convert_str_to_int(self, value: str, default: int = None) -> int:
         """
@@ -236,7 +351,7 @@ class RangeInputFormElementParser(InputFormElementParser):
         except:
             return default
 
-    def _get_value_attr(self, bs4_parser: BeautifulSoup) -> str:
+    def _get_value_attr(self, bs4_parser: 'bs4.Tag') -> str:
         """
         Overrides the base class to return a generated default value when the
         value attribute is not defined.
@@ -247,10 +362,10 @@ class RangeInputFormElementParser(InputFormElementParser):
         if value is None:
 
             attribute_min = self._convert_str_to_int(
-                bs4_parser.attrs.get("min", self.DEFAULT_MIN_VALUE), self.DEFAULT_MIN_VALUE)
+                bs4_parser.attrs.get("min", self.__default_min_value), self.__default_min_value)
 
             attribute_max = self._convert_str_to_int(
-                bs4_parser.attrs.get("max", self.DEFAULT_MAX_VALUE), self.DEFAULT_MAX_VALUE)
+                bs4_parser.attrs.get("max", self.__default_max_value), self.__default_max_value)
 
             if attribute_max < attribute_min:
                 value = str(attribute_min)
@@ -265,19 +380,47 @@ class SubmitInputFormElementParser(InputFormElementParser):
     Parser for HTML input elements of type "submit"
     """
 
-    DEFAULT_TYPE = "submit"
-    DEFAULT_VALUE = "submit"
-    DEFAULT_IS_SELECTED = False
+    _default_type = "submit"
+    _default_value = "submit"
+    _default_is_selected = False
+
+    def suitable(self, tag_name: str, type_attribute: str) -> bool:
+        """
+        Determine if the parser is appropriate for the given HTML element tag
+        and type.
+
+        :param tag_name: The HTML element name
+
+        :param type_attribute: The HTML element "type" attribute. If no
+            attribute is present, provide None.
+        """
+
+        return tag_name == "input" and type_attribute == "submit"
 
 
 class ButtonInputFormElementParser(SubmitInputFormElementParser):
     """
-    Parser for HTML input elements of type "button"
+    Parser for HTML input elements of type "button" and "reset"
     """
 
-    DEFAULT_TYPE = "button"
-    DEFAULT_VALUE = None
-    DEFAULT_IS_SELECTED = False
+    _default_type = "button"
+    _default_value = None
+    _default_is_selected = False
+
+    __suitable_types = ("button", "reset", "search", )
+
+    def suitable(self, tag_name: str, type_attribute: str) -> bool:
+        """
+        Determine if the parser is appropriate for the given HTML element tag
+        and type.
+
+        :param tag_name: The HTML element name
+
+        :param type_attribute: The HTML element "type" attribute. If no
+            attribute is present, provide None.
+        """
+
+        return tag_name == "input" and type_attribute in self.__suitable_types
 
 
 class ImageInputFormElementParser(SubmitInputFormElementParser):
@@ -285,17 +428,10 @@ class ImageInputFormElementParser(SubmitInputFormElementParser):
     Parser for HTML input elements of type "image"
     """
 
-    DEFAULT_VALUE = "0"
-    NAME_ATTR_SUFFIXES = ("x", "y", )
+    _default_type = "image"
+    _default_value = "0"
 
-    def _get_value_attr(self, bs4_parser: BeautifulSoup) -> str:
-        """
-        Overrides InputFormElementParser to always return a value of "0". This
-        element type indicates the coordinates where the image was clicked
-        when submitted.
-        """
-
-        return self.DEFAULT_VALUE
+    __name_attribute_suffixes = ("x", "y", )
 
     def parse(self, html: str) -> List[FormElement]:
         """
@@ -311,7 +447,7 @@ class ImageInputFormElementParser(SubmitInputFormElementParser):
         form_element = super().parse(html)[0]
 
         form_elements = []
-        for suffix in self.NAME_ATTR_SUFFIXES:
+        for suffix in self.__name_attribute_suffixes:
 
             element_name = suffix
             if form_element.name is not None:
@@ -322,17 +458,30 @@ class ImageInputFormElementParser(SubmitInputFormElementParser):
                 value=form_element.value,
                 binary_path=form_element.binary_path,
                 is_selected=form_element.is_selected,
-                primary_type=form_element.primary_type,
-                secondary_type=form_element.secondary_type
+                tag_name=form_element.tag_name,
+                type_attribute=form_element.type_attribute
             ))
 
         return form_elements
 
+    def suitable(self, tag_name: str, type_attribute: str) -> bool:
+        """
+        Determine if the parser is appropriate for the given HTML element tag
+        and type.
 
-class ResetInputFormElementParser(SubmitInputFormElementParser):
-    """
-    Parser for HTML input elements of type "reset"
-    """
+        :param tag_name: The HTML element name
 
-    DEFAULT_TYPE = "reset"
-    DEFAULT_IS_SELECTED = False
+        :param type_attribute: The HTML element "type" attribute. If no
+            attribute is present, provide None.
+        """
+
+        return tag_name == "input" and type_attribute == "image"
+
+    def _get_value_attr(self, bs4_parser: 'bs4.Tag') -> str:
+        """
+        Overrides InputFormElementParser to always return a value of "0". This
+        element type indicates the coordinates where the image was clicked
+        when submitted.
+        """
+
+        return self._default_value
