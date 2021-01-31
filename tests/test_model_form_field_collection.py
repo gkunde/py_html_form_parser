@@ -1,12 +1,13 @@
 import unittest
 
-from html_form_parser.form_field import FormField
+# from html_form_parser.form_field import FormField
+from html_form_parser.elements import FormElement
 from html_form_parser.form_field_collection import FormFieldCollection
 
 
 class Test_Model_FormFieldCollection(unittest.TestCase):
 
-    _formfield_singlevalue = FormField("testfield", value="testvalue")
+    _formfield_singlevalue = FormElement("testfield", value="testvalue")
 
     def test_init(self):
 

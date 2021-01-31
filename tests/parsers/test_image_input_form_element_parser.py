@@ -28,8 +28,8 @@ class Test_ImageInputFormElementParser(unittest.TestCase):
         obj = ImageInputFormElementParser()
         elements = obj.parse(self.DEFAULT_TESTVALUE)
 
-        self.assertEqual(obj.DEFAULT_VALUE, elements[0].value)
-        self.assertEqual(obj.DEFAULT_VALUE, elements[1].value)
+        self.assertEqual(obj._default_value, elements[0].value)
+        self.assertEqual(obj._default_value, elements[1].value)
     
     def test_default_is_selected(self):
 

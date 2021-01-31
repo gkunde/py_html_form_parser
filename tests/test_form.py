@@ -107,66 +107,6 @@ class Test_Form(unittest.TestCase):
         self.assertEquals(form_1, form.name)
         self.assertNotEquals(form_0, form.name)
 
-    def test_to_dict(self):
-
-        html_header = """<html><head><title>Test Form</title></head><body>"""
-        html_trailer = """</body></html>"""
-
-        form_tag = "form"
-        form_attrs = {"name": "test1234",
-                      "id": "form0000",
-                      "action": "https://www.example.com/",
-                      "method": "GET",
-                      "enctype": "multipart/form-data"}
-        form_header = "<%s %s>" % (form_tag, " ".join("%s=\"%s\"" % (key, val)
-                                                      for key, val in form_attrs.items()))
-        form_trailer = "</%s>" % (form_tag, )
-
-        field0_tag = "input"
-        field0_attrs = {
-            "name": "test1234",
-            "value": "test4321",
-        }
-
-        field0 = "<%s %s />" % (field0_tag, " ".join("%s=\"%s\"" % (key, val, )
-                                                     for key, val in field0_attrs.items()))
-
-        control0_tag = "button"
-        control0_attrs = {
-            "name": "process",
-            "type": "submit",
-            "value": "process"
-        }
-
-        control0 = "<%s %s />" % (control0_tag, " ".join("%s=\"%s\"" % (key, val, )
-                                                         for key, val in control0_attrs.items()))
-
-        html = "".join((
-            html_header,
-            form_header,
-            field0,
-            control0,
-            form_trailer,
-            html_trailer
-        ))
-
-        form_manager = Form(html, form_attrs["name"])
-        as_dict = form_manager.to_dict()
-
-        self.assertIn("@action", as_dict)
-        self.assertEqual(form_attrs["action"], as_dict["@action"])
-        self.assertIn("@enctype", as_dict)
-        self.assertEqual(form_attrs["enctype"], as_dict["@enctype"])
-        self.assertIn("@id", as_dict)
-        self.assertEqual(form_attrs["id"], as_dict["@id"])
-        self.assertIn("@method", as_dict)
-        self.assertEqual(form_attrs["method"], as_dict["@method"])
-        self.assertIn("@name", as_dict)
-        self.assertEqual(form_attrs["name"], as_dict["@name"])
-
-        self.assertIn("fields", as_dict)
-        self.assertEqual(2, len(as_dict["fields"]))
-
     def test_readonly_attribute(self):
 
         html = "<form " \

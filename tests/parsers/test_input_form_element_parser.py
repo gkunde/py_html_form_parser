@@ -15,7 +15,7 @@ class Test_InputFormElementParser(unittest.TestCase):
         form_elements = obj.parse(self.DEFAULT_TESTVALUE)
 
         self.assertEqual(1, len(form_elements))
-        self.assertEqual(obj.DEFAULT_TYPE, form_elements[0].secondary_type)
+        self.assertEqual(obj._default_type, form_elements[0].type_attribute)
 
     def test_default_value(self):
 
@@ -23,4 +23,4 @@ class Test_InputFormElementParser(unittest.TestCase):
         form_elements = obj.parse(self.DEFAULT_TESTVALUE)
 
         self.assertEqual(1, len(form_elements))
-        self.assertEqual(obj.DEFAULT_VALUE, form_elements[0].value)
+        self.assertEqual(obj._default_value, form_elements[0].value)

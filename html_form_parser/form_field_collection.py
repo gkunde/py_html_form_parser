@@ -1,13 +1,13 @@
 from collections.abc import Iterable, MutableSequence
 from typing import List
 
-from .form_field import FormField
+from .elements import FormElement
 
 
 class FormFieldCollection(MutableSequence):
     """
-    A list like collection to store and manage FormField objects. Providing
-    indexable access to the FormField objects contained.
+    A list like collection to store and manage FormElement objects. Providing
+    indexable access to the FormElement objects contained.
 
     Access to the items within the collection can be done via:
 
@@ -20,12 +20,12 @@ class FormFieldCollection(MutableSequence):
     tuple containing the form field name and value
         Example: form_field_collection[("name_of_field", "value_on_field", )]
 
-    :param iterable: A collection of FormField objects to initialize with.
+    :param iterable: A collection of FormElement objects to initialize with.
     """
 
-    __TYPE_ERROR_EXPECTED = "Expected type '%s', got '%s' instead."
+    __type_error_expected = "Expected type '%s', got '%s' instead."
 
-    def __init__(self, iterable: List[FormField] = None):
+    def __init__(self, iterable: List[FormElement] = None):
 
         self.__fields = []
 
@@ -34,9 +34,9 @@ class FormFieldCollection(MutableSequence):
         self.__index_to_check = None
 
         # These indexes are intended to provide a lookup for the objects
-        # stored in self.__fields. One to enable look-ups by a FormField.name
-        # attribute, the other to perform look-ups by FormField.name and
-        # FormField.value.
+        # stored in self.__fields. One to enable look-ups by a FormElement.name
+        # attribute, the other to perform look-ups by FormElement.name and
+        # FormElement.value.
         self.__index_name = {}
         self.__index_name_value = {}
 
@@ -50,15 +50,15 @@ class FormFieldCollection(MutableSequence):
         """
         return self.__iter__
 
-    def append(self, form_field: FormField):
+    def append(self, form_field: FormElement):
         """
         Add item to the collection
 
-        :param form_field: A FormField object to be added.
+        :param form_field: A FormElement object to be added.
         """
 
-        if not isinstance(form_field, FormField):
-            self.__raise_type_error_expected(FormField, form_field, )
+        if not isinstance(form_field, FormElement):
+            self.__raise_type_error_expected(FormElement, form_field, )
 
         new_index = len(self.__fields)
         if form_field.name not in self.__index_name:
@@ -86,12 +86,12 @@ class FormFieldCollection(MutableSequence):
 
         return [item for item in self.__fields]
 
-    def extend(self, form_fields: List[FormField]):
+    def extend(self, form_fields: List[FormElement]):
         """
-        Append another collection of FormFields to this collection.
+        Append another collection of FormElements to this collection.
 
-        :param form_fields: A collection of FormFields contained in a list or
-            another FormFieldsCollection object.
+        :param form_fields: A collection of FormElements contained in a list or
+            another FormElementsCollection object.
         """
 
         if isinstance(form_fields, (Iterable, FormFieldCollection, )):
@@ -107,11 +107,11 @@ class FormFieldCollection(MutableSequence):
 
         A key can be:
             integer - Will just echo back the value
-            string - Will refer to the "name" property of the FormField objects
+            string - Will refer to the "name" property of the FormElement objects
                 in the collection.
             tuple[string, string] - Will refer to the "name" and "value"
-                properties of the FormField objects.
-            FormField - Will find the matching FormField object.
+                properties of the FormElement objects.
+            FormElement - Will find the matching FormElement object.
 
         :param key: The item to find
         """
@@ -124,12 +124,12 @@ class FormFieldCollection(MutableSequence):
             return self.__index_name[key]
         elif isinstance(key, Iterable) and len(key) == 2:
             return self.__index_name_value[key]
-        elif isinstance(key, FormField):
+        elif isinstance(key, FormElement):
             return self.__fields.index(key)
 
-    def insert(self, key, form_field: FormField):
+    def insert(self, key, form_field: FormElement):
         """
-        Insert a FormField object at the provided index.
+        Insert a FormElement object at the provided index.
 
         :param key: An integer index, the string field name of an existing
             entry, or a tuple of the field name and value of an existing
@@ -145,7 +145,7 @@ class FormFieldCollection(MutableSequence):
         self.__index_name[form_field.name] = idx
         self.__index_name_value[(form_field.name, form_field.value, )] = idx
 
-    def pop(self, key) -> FormField:
+    def pop(self, key) -> FormElement:
         """
         Remove entry at given index.
 
@@ -174,7 +174,7 @@ class FormFieldCollection(MutableSequence):
 
         self.__refresh_index()
 
-    def remove(self, form_field: FormField) -> None:
+    def remove(self, form_field: FormElement) -> None:
         """
         Removes the referenced object from the collection.
         """
@@ -207,7 +207,7 @@ class FormFieldCollection(MutableSequence):
         """
         Update the indexes using the values found in self.__fields[key]
 
-        :param key: Integer index of the FormField object create index for.
+        :param key: Integer index of the FormElement object create index for.
         """
 
         form_field = self.__fields[key]
@@ -224,12 +224,12 @@ class FormFieldCollection(MutableSequence):
             self.__index_to_check = None
 
     def __raise_type_error_expected(self, expected, given):
-        raise TypeError(self.__TYPE_ERROR_EXPECTED % (expected.__name__, given.__name__, ))
+        raise TypeError(self.__type_error_expected % (expected.__name__, type(given).__name__, ))
 
     def __len__(self) -> int:
         return len(self.__fields)
 
-    def __iter__(self) -> FormField:
+    def __iter__(self) -> FormElement:
 
         for index, item in enumerate(self.__fields):
 
@@ -239,11 +239,11 @@ class FormFieldCollection(MutableSequence):
 
             self.__update_index(index)
 
-    def __eq__(self, compare_to: 'FormFieldCollection') -> bool:
+    def __eq__(self, compare_to: 'FormElementCollection') -> bool:
 
         return not self.__ne__(compare_to)
 
-    def __ne__(self, compare_to: 'FormFieldCollection') -> bool:
+    def __ne__(self, compare_to: 'FormElementCollection') -> bool:
 
         if len(self) == len(compare_to):
             return False
@@ -254,7 +254,7 @@ class FormFieldCollection(MutableSequence):
 
         return True
 
-    def __add__(self, iterable: List[FormField]) -> 'FormFieldCollection':
+    def __add__(self, iterable: List[FormElement]) -> 'FormElementCollection':
         """
         Merge two collections together, returning a new collection from the
         merge.
@@ -267,7 +267,7 @@ class FormFieldCollection(MutableSequence):
 
         return new_collection
 
-    def __getitem__(self, key) -> FormField:
+    def __getitem__(self, key) -> FormElement:
         """
         Make the object subscriptable. The items can be accessed via integer
         index, a name (only first instance will be returned), or a field name
@@ -289,7 +289,7 @@ class FormFieldCollection(MutableSequence):
 
         return self.__fields[index]
 
-    def __setitem__(self, key, newvalue: FormField):
+    def __setitem__(self, key, newvalue: FormElement):
         """
         Set an object at the given "key" or indexed location.
 

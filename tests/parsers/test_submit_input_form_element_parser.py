@@ -13,21 +13,21 @@ class Test_SubmitInputFormElementParser(unittest.TestCase):
         obj = SubmitInputFormElementParser()
         form_elements = obj.parse(self.DEFAULT_TESTVALUE)
 
-        self.assertEqual(obj.DEFAULT_TYPE, form_elements[0].secondary_type)
+        self.assertEqual(obj._default_type, form_elements[0].type_attribute)
 
     def test_default_value(self):
 
         obj = SubmitInputFormElementParser()
         form_elements = obj.parse(self.DEFAULT_TESTVALUE)
 
-        self.assertEqual(obj.DEFAULT_VALUE, form_elements[0].value)
+        self.assertEqual(obj._default_value, form_elements[0].value)
 
     def test_default_name(self):
 
         obj = SubmitInputFormElementParser()
         form_elements = obj.parse(self.DEFAULT_TESTVALUE)
 
-        self.assertEqual(obj.DEFAULT_NAME, form_elements[0].name)
+        self.assertEqual(obj._default_name, form_elements[0].name)
 
     def test_default_is_selected(self):
 

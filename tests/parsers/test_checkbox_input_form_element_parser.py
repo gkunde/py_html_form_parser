@@ -1,6 +1,6 @@
 import unittest
 
-from html_form_parser.parsers.form_element_parser import CheckboxInputFormElementParser
+from html_form_parser.parsers.form_element_parser import SelectableInputFormElementParser
 
 
 class Test_CheckboxInputFormElementParser(unittest.TestCase):
@@ -10,23 +10,23 @@ class Test_CheckboxInputFormElementParser(unittest.TestCase):
 
     def test_default_secondary_type(self):
 
-        obj = CheckboxInputFormElementParser()
+        obj = SelectableInputFormElementParser()
         form_elements = obj.parse(self.DEFAULT_TESTVALUE)
 
         self.assertEqual(1, len(form_elements))
-        self.assertEqual(obj.DEFAULT_TYPE, form_elements[0].secondary_type)
+        self.assertEqual(obj._default_type, form_elements[0].type_attribute)
 
     def test_default_value(self):
 
-        obj = CheckboxInputFormElementParser()
+        obj = SelectableInputFormElementParser()
         form_elements = obj.parse(self.DEFAULT_TESTVALUE)
 
         self.assertEqual(1, len(form_elements))
-        self.assertEqual(obj.DEFAULT_VALUE, form_elements[0].value)
+        self.assertEqual(obj._default_value, form_elements[0].value)
 
     def test_default_is_selected(self):
 
-        obj = CheckboxInputFormElementParser()
+        obj = SelectableInputFormElementParser()
         form_elements = obj.parse(self.DEFAULT_TESTVALUE)
 
         self.assertEqual(1, len(form_elements))
@@ -34,7 +34,7 @@ class Test_CheckboxInputFormElementParser(unittest.TestCase):
 
     def test_is_selected(self):
 
-        obj = CheckboxInputFormElementParser()
+        obj = SelectableInputFormElementParser()
         form_elements = obj.parse(self.TESTVALUE)
 
         self.assertEqual(1, len(form_elements))

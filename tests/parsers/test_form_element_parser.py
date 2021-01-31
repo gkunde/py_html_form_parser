@@ -27,8 +27,8 @@ class Test_FormElementParser(unittest.TestCase):
 
         self.assertEqual(1, len(form_elements))
 
-        self.assertEqual("input", form_elements[0].primary_type)
-        self.assertEqual("foo", form_elements[0].secondary_type)
+        self.assertEqual("input", form_elements[0].tag_name)
+        self.assertEqual("foo", form_elements[0].type_attribute)
         self.assertEqual("bar", form_elements[0].name)
         self.assertEqual("fizz", form_elements[0].value)
         self.assertTrue(form_elements[0].is_selected)
@@ -40,7 +40,7 @@ class Test_FormElementParser(unittest.TestCase):
         form_elements = obj.parse(self.DEFAULT_TESTVALUE)
 
         self.assertEqual(1, len(form_elements))
-        self.assertEqual("input", form_elements[0].primary_type)
+        self.assertEqual("input", form_elements[0].tag_name)
 
     def test_default_secondary_type(self):
 
@@ -48,7 +48,7 @@ class Test_FormElementParser(unittest.TestCase):
         form_elements = obj.parse(self.DEFAULT_TESTVALUE)
 
         self.assertEqual(1, len(form_elements))
-        self.assertIsNone(form_elements[0].secondary_type)
+        self.assertIsNone(form_elements[0].type_attribute)
     
     def test_default_name(self):
 
@@ -64,7 +64,7 @@ class Test_FormElementParser(unittest.TestCase):
         form_elements = obj.parse(self.DEFAULT_TESTVALUE)
 
         self.assertEqual(1, len(form_elements))
-        self.assertEqual(obj.DEFAULT_VALUE, form_elements[0].value)
+        self.assertEqual(obj._default_value, form_elements[0].value)
     
     def test_default_is_selected(self):
 
@@ -80,7 +80,7 @@ class Test_FormElementParser(unittest.TestCase):
         form_elements = obj.parse(self.TESTVALUE)
 
         self.assertEqual(1, len(form_elements))
-        self.assertEqual("foo", form_elements[0].secondary_type)
+        self.assertEqual("foo", form_elements[0].type_attribute)
     
     def test_name(self):
 
