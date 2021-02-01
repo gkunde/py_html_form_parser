@@ -39,3 +39,45 @@ class Test_CheckboxInputFormElementParser(unittest.TestCase):
 
         self.assertEqual(1, len(form_elements))
         self.assertTrue(form_elements[0].is_selected)
+
+    def test_suitable_checkbox(self):
+
+        obj = SelectableInputFormElementParser()
+        result = obj.suitable("input", "checkbox")
+
+        self.assertTrue(result)
+
+    def test_suitable_radio(self):
+
+        obj = SelectableInputFormElementParser()
+        result = obj.suitable("input", "radio")
+
+        self.assertTrue(result)
+
+    def test_suitable_invalid_type(self):
+
+        obj = SelectableInputFormElementParser()
+        result = obj.suitable("input", "example")
+
+        self.assertFalse(result)
+
+    def test_suitable_checkbox_invalid_tag(self):
+
+        obj = SelectableInputFormElementParser()
+        result = obj.suitable("example", "checkbox")
+
+        self.assertFalse(result)
+
+    def test_suitable_radio_invalid_tag(self):
+
+        obj = SelectableInputFormElementParser()
+        result = obj.suitable("example", "radio")
+
+        self.assertFalse(result)
+
+    def test_suitable_invalid(self):
+
+        obj = SelectableInputFormElementParser()
+        result = obj.suitable("example", "example")
+
+        self.assertFalse(result)

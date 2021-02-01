@@ -67,3 +67,24 @@ class Test_SelectFormElementParser(unittest.TestCase):
         self.assertTrue(elements[0].is_selected)
         self.assertFalse(elements[1].is_selected)
         self.assertFalse(elements[2].is_selected)
+
+    def test_suitable(self):
+
+        obj = SelectFormElementParser()
+        result = obj.suitable("select", None)
+
+        self.assertTrue(result)
+
+    def test_suitable_false(self):
+
+        obj = SelectFormElementParser()
+        result = obj.suitable("example", None)
+
+        self.assertFalse(result)
+
+    def test_suitable_true_valid_tag(self):
+
+        obj = SelectFormElementParser()
+        result = obj.suitable("select", "example")
+
+        self.assertTrue(result)

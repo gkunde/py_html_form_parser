@@ -35,3 +35,57 @@ class Test_ButtonInputFormElementParser(unittest.TestCase):
         form_element = obj.parse(self.DEFAULT_TESTVALUE)
 
         self.assertFalse(form_element[0].is_selected)
+
+    def test_suitable_button(self):
+
+        obj = ButtonInputFormElementParser()
+        result = obj.suitable("input", "button")
+
+        self.assertTrue(result)
+
+    def test_suitable_reset(self):
+
+        obj = ButtonInputFormElementParser()
+        result = obj.suitable("input", "reset")
+
+        self.assertTrue(result)
+
+    def test_suitable_search(self):
+
+        obj = ButtonInputFormElementParser()
+        result = obj.suitable("input", "search")
+
+        self.assertTrue(result)
+
+    def test_suitable_invalid_type(self):
+
+        obj = ButtonInputFormElementParser()
+        result = obj.suitable("input", "example")
+
+        self.assertFalse(result)
+
+    def test_suitable_button_invalid_tag(self):
+
+        obj = ButtonInputFormElementParser()
+        result = obj.suitable("example", "button")
+
+        self.assertFalse(result)
+
+    def test_suitable_reset_invalid_tag(self):
+
+        obj = ButtonInputFormElementParser()
+        result = obj.suitable("example", "reset")
+
+        self.assertFalse(result)
+
+    def test_suitable_search_invalid_tag(self):
+
+        obj = ButtonInputFormElementParser()
+        result = obj.suitable("example", "search")
+
+        self.assertFalse(result)
+
+    def test_suitable_invalid(self):
+
+        obj = ButtonInputFormElementParser()
+        result = obj.suitable("example", "example")

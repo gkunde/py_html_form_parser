@@ -35,3 +35,31 @@ class Test_SubmitInputFormElementParser(unittest.TestCase):
         form_element = obj.parse(self.DEFAULT_TESTVALUE)
 
         self.assertFalse(form_element[0].is_selected)
+
+    def test_suitable(self):
+
+        obj = SubmitInputFormElementParser()
+        result = obj.suitable("input", "submit")
+
+        self.assertTrue(result)
+    
+    def test_suitable_false(self):
+
+        obj = SubmitInputFormElementParser()
+        result = obj.suitable("example", "example")
+
+        self.assertFalse(result)
+
+    def test_suitable_false_valid_tag(self):
+
+        obj = SubmitInputFormElementParser()
+        result = obj.suitable("input", "example")
+
+        self.assertFalse(result)
+    
+    def test_suitable_false_valid_type(self):
+
+        obj = SubmitInputFormElementParser()
+        result = obj.suitable("example", "submit")
+
+        self.assertFalse(result)

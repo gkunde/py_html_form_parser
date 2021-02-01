@@ -14,7 +14,7 @@ class Test_ImageInputFormElementParser(unittest.TestCase):
         elements = obj.parse(self.DEFAULT_TESTVALUE)
 
         self.assertEqual(2, len(elements))
-    
+
     def test_default_name(self):
 
         obj = ImageInputFormElementParser()
@@ -22,7 +22,7 @@ class Test_ImageInputFormElementParser(unittest.TestCase):
 
         self.assertEqual("x", elements[0].name)
         self.assertEqual("y", elements[1].name)
-    
+
     def test_default_value(self):
 
         obj = ImageInputFormElementParser()
@@ -30,7 +30,7 @@ class Test_ImageInputFormElementParser(unittest.TestCase):
 
         self.assertEqual(obj._default_value, elements[0].value)
         self.assertEqual(obj._default_value, elements[1].value)
-    
+
     def test_default_is_selected(self):
 
         obj = ImageInputFormElementParser()
@@ -46,3 +46,31 @@ class Test_ImageInputFormElementParser(unittest.TestCase):
 
         self.assertEqual("test.x", elements[0].name)
         self.assertEqual("test.y", elements[1].name)
+
+    def test_suitable(self):
+
+        obj = ImageInputFormElementParser()
+        result = obj.suitable("input", "image")
+
+        self.assertTrue(result)
+
+    def test_suitable_false_invalid_tag(self):
+
+        obj = ImageInputFormElementParser()
+        result = obj.suitable("example", "image")
+
+        self.assertFalse(result)
+
+    def test_suitable_false_invalid_type(self):
+
+        obj = ImageInputFormElementParser()
+        result = obj.suitable("input", "example")
+
+        self.assertFalse(result)
+
+    def test_suitable_false_invalid(self):
+
+        obj = ImageInputFormElementParser()
+        result = obj.suitable("example", "example")
+
+        self.assertFalse(result)

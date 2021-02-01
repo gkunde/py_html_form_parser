@@ -31,3 +31,31 @@ class Test_ColorInputFormElementParser(unittest.TestCase):
 
         self.assertEqual(1, len(form_elements))
         self.assertEqual("#123456", form_elements[0].value)
+
+    def test_suitable(self):
+
+        obj = ColorInputFormElementParser()
+        result = obj.suitable("input", "color")
+
+        self.assertTrue(result)
+
+    def test_suitable_false_invalid_tag(self):
+
+        obj = ColorInputFormElementParser()
+        result = obj.suitable("example", "color")
+
+        self.assertFalse(result)
+
+    def test_suitable_false_invalid_type(self):
+
+        obj = ColorInputFormElementParser()
+        result = obj.suitable("input", "example")
+
+        self.assertFalse(result)
+
+    def test_suitable_false_invalid(self):
+
+        obj = ColorInputFormElementParser()
+        result = obj.suitable("example", "example")
+
+        self.assertFalse(result)

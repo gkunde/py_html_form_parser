@@ -30,3 +30,31 @@ class Test_TextareaFormelementParser(unittest.TestCase):
 
         self.assertEqual(1, len(form_elements))
         self.assertEqual("", form_elements[0].value)
+
+    def test_suitable(self):
+
+        obj = TextareaFormElementParser()
+        result = obj.suitable("textarea", None)
+
+        self.assertTrue(result)
+
+    def test_suitable_false(self):
+
+        obj = TextareaFormElementParser()
+        result = obj.suitable("input", None)
+
+        self.assertFalse(result)
+
+    def test_suitable_true_w_type(self):
+
+        obj = TextareaFormElementParser()
+        result = obj.suitable("textarea", "random")
+
+        self.assertTrue(result)
+
+    def test_suitable_false_w_type(self):
+
+        obj = TextareaFormElementParser()
+        result = obj.suitable("foo", "random")
+
+        self.assertFalse(result)

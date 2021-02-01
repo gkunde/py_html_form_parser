@@ -105,3 +105,17 @@ class Test_FormElementParser(unittest.TestCase):
 
         self.assertEqual(1, len(form_elements))
         self.assertTrue(form_elements[0].is_selected)
+    
+    def test_suitable(self):
+
+        obj = FormElementParser()
+        result = obj.suitable("input", "example")
+
+        self.assertTrue(result)
+    
+    def test_suitable_false_invalid_tag(self):
+
+        obj = FormElementParser()
+        result = obj.suitable("example", "example")
+
+        self.assertFalse(result)
