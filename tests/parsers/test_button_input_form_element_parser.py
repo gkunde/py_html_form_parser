@@ -89,3 +89,5 @@ class Test_ButtonInputFormElementParser(unittest.TestCase):
 
         obj = ButtonInputFormElementParser()
         result = obj.suitable("example", "example")
+
+        self.assertFalse(result)
