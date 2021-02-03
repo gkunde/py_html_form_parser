@@ -112,7 +112,7 @@ class Form:
             for input_tag in self._find_all_input_tags(html_soup, form_tag.attrs["id"]):
                 self._fields.extend(self._parse_input_tag(input_tag, parsers))
 
-    def _find_all_input_tags(self, form_tag: 'bs4.Tag', form_id: str = None) -> 'List[bs4.Tag]':
+    def _find_all_input_tags(self, form_tag: 'bs4.Tag', form_id: str = None) -> 'Iterator[bs4.Tag]':
         """
         Yields all input field child tags from provided form_tag.
 
@@ -129,7 +129,7 @@ class Form:
         for input_tag in form_tag.find_all(("button", "input", "select", "textarea", ), attrs=attrs):
             yield input_tag
 
-    def _parse_input_tag(self, input_tag: 'bs4.Tag', parsers: List[form_element_parser.FormElementParser]) -> Iterator[FormElement]:
+    def _parse_input_tag(self, input_tag: 'bs4.Tag', parsers: List[form_element_parser.FormElementParser]) -> List[FormElement]:
         """
         Returns a collection of FormElement objects from the given input_tag.
 
