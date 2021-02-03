@@ -23,8 +23,6 @@ class FormFieldCollection(MutableSequence):
     :param iterable: A collection of FormElement objects to initialize with.
     """
 
-    __type_error_expected = "Expected type '%s', got '%s' instead."
-
     def __init__(self, iterable: List[FormElement] = None):
 
         self.__fields = []
@@ -52,13 +50,10 @@ class FormFieldCollection(MutableSequence):
 
     def append(self, form_field: FormElement):
         """
-        Add item to the collection
+        Add FormElement object to the collection
 
         :param form_field: A FormElement object to be added.
         """
-
-        if not isinstance(form_field, FormElement):
-            self.__raise_type_error_expected(FormElement, form_field, )
 
         new_index = len(self.__fields)
         if form_field.name not in self.__index_name:
@@ -94,12 +89,8 @@ class FormFieldCollection(MutableSequence):
             another FormElementsCollection object.
         """
 
-        if isinstance(form_fields, (Iterable, FormFieldCollection, )):
-            for item in form_fields:
-                self.append(item)
-
-        else:
-            self.__raise_type_error_expected(Iterable, form_fields)
+        for item in form_fields:
+            self.append(item)
 
     def index(self, key) -> int:
         """
@@ -222,9 +213,6 @@ class FormFieldCollection(MutableSequence):
         # Reset the breadcrumb, the key has been updated/refreshed.
         if self.__index_to_check == key:
             self.__index_to_check = None
-
-    def __raise_type_error_expected(self, expected, given):
-        raise TypeError(self.__type_error_expected % (expected.__name__, type(given).__name__, ))
 
     def __len__(self) -> int:
         return len(self.__fields)
