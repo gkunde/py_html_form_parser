@@ -1,5 +1,5 @@
 import re
-from typing import List
+from typing import List, Iterator
 
 from bs4 import BeautifulSoup
 
@@ -72,7 +72,7 @@ class Form:
             returned.
         """
 
-        bs4parser = BeautifulSoup(html, "html5lib")
+        html_soup = BeautifulSoup(html, "html5lib")
 
         # A collection of parsers. The order does matter, parsers earlier in
         # the list are more specific than parsers at the end.
@@ -94,42 +94,61 @@ class Form:
         if name is not None:
             find_attrs["name"] = name
 
-        form = bs4parser.find("form", attrs=find_attrs)
+        form_tag = html_soup.find("form", attrs=find_attrs)
 
-        if form is None:
+        if form_tag is None:
             raise RuntimeError("no form found in markup")
 
         self.__reset_attributes()
 
-        for name, value in form.attrs.items():
+        for name, value in form_tag.attrs.items():
             self._attributes[name] = value
 
-        element_attrs_filters = [{"form": False}]
-        if form.attrs.get("id", None) is not None:
-            element_attrs_filters.append({"form": form.attrs["id"]})
+        for input_tag in self._find_all_input_tags(form_tag, None):
+            self._fields.extend(self._parse_input_tag(input_tag, parsers))
 
-        for attr_filter in element_attrs_filters:
+        if form_tag.attrs.get("id", None) is not None:
 
-            for field in form.find_all(("button", "input", "select", "textarea", ), attrs=attr_filter):
+            for input_tag in self._find_all_input_tags(html_soup, form_tag.attrs["id"]):
+                self._fields.extend(self._parse_input_tag(input_tag, parsers))
 
-                default_type = "text"
-                if field.name == "button":
-                    default_type = "submit"
+    def _find_all_input_tags(self, form_tag: 'bs4.Tag', form_id: str = None) -> 'List[bs4.Tag]':
+        """
+        Yields all input field child tags from provided form_tag.
 
-                field_type = field.attrs.get("type", default_type).strip().lower()
+        :param form_tag: A html tag to fetch input tags from.
 
-                if field_type in self.__EXCLUDE_TYPES:
-                    continue
+        :param form_id: When not None, returns all input tags with a matching
+            value in their "form" attribute.
+        """
 
-                for parser in parsers:
+        attrs = {"form": False}
+        if form_id is not None:
+            attrs = {"form": form_id}
 
-                    if parser.suitable(field.name, field_type.strip().lower()):
+        for input_tag in form_tag.find_all(("button", "input", "select", "textarea", ), attrs=attrs):
+            yield input_tag
 
-                        self._fields.extend(parser.parse(field))
+    def _parse_input_tag(self, input_tag: 'bs4.Tag', parsers: List[form_element_parser.FormElementParser]) -> Iterator[FormElement]:
+        """
+        Returns a collection of FormElement objects from the given input_tag.
 
-                        break
+        :param input_tag: The form input tag to parse into FormElements
 
-        return None
+        :param parsers: A collection of parsers to be used for identifying and
+            parsing the provided input_tag.
+        """
+
+        elements = []
+
+        field_type = input_tag.attrs.get("type", "").strip().lower()
+
+        for parser in parsers:
+
+            if parser.suitable(input_tag.name, field_type):
+                elements = parser.parse(input_tag)
+
+        return elements
 
     def __reset_attributes(self) -> None:
         """
