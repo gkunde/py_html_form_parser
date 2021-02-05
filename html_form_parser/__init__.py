@@ -147,7 +147,7 @@ class Form:
 
             if parser.suitable(input_tag.name, field_type):
                 elements = parser.parse(input_tag)
-                break;
+                break
 
         return elements
 
