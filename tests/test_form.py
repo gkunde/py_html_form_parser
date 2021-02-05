@@ -122,3 +122,20 @@ class Test_Form(unittest.TestCase):
             form.name = "new_example"
 
         self.assertEquals("can't set attribute", str(exp.exception))
+    
+    def test_form_parse_stops_when_parser_is_found(self):
+
+        html = "<form " \
+            "name=\"example\" " \
+            "id=\"example\" " \
+            "method=\"POST\">" \
+            "<select name=\"exampleSelect\">" \
+            "<option value=\"001\">Option 1</option>" \
+            "<option value=\"002\">Option 2</option>" \
+            "</select></form>"
+        
+        form = Form(html)
+
+        data = list(form.fields)
+
+        self.assertEqual(2, len(data))
