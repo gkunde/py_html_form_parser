@@ -1,7 +1,7 @@
 import re
 from typing import List, Iterator
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 from .elements import FormElement
 from .form_field_collection import FormFieldCollection
@@ -22,16 +22,17 @@ class Form:
     property. Note, form controls buttons for "reset" and "search" are not
     captured.
 
-    :param html: A string containing HTML markup.
+    :param html: A string containing HTML markup, or a BeautifulSoup
+        compatible object.
 
-    :param name: Specific form to parse from the HTML, None will default to
-        the first encountered form.
+    :param index: When more than one form is available, select form by zero
+        based index.
     """
 
     # form element types to skip when parsing
     __EXCLUDE_TYPES = ("reset", "search", )
 
-    def __init__(self, html: str, name: str = None):
+    def __init__(self, html: str, index: int = 0):
 
         self._attributes = {}
         self.__reset_attributes()
@@ -39,7 +40,7 @@ class Form:
         self._fields = FormFieldCollection()
 
         if html is not None:
-            self.__parse(html, name)
+            self.__parse(html, index)
 
     @property
     def name(self) -> str:
@@ -61,7 +62,7 @@ class Form:
     def fields(self) -> FormFieldCollection:
         return self._fields
 
-    def __parse(self, html: str, name: str = None):
+    def __parse(self, html: str, index: int = 0):
         """
         Parse HTML markup for "form" element, optionally selecting "form"
         element by name.
@@ -72,7 +73,9 @@ class Form:
             returned.
         """
 
-        html_soup = BeautifulSoup(html, "html5lib")
+        html_soup = html
+        if not isinstance(html_soup, (Tag, BeautifulSoup, )):
+            html_soup = BeautifulSoup(html, "html5lib")
 
         # A collection of parsers. The order does matter, parsers earlier in
         # the list are more specific than parsers at the end.
@@ -90,26 +93,26 @@ class Form:
             form_element_parser.FormElementParser(),
         ]
 
-        find_attrs = {}
-        if name is not None:
-            find_attrs["name"] = name
+        form_nodes = html_soup.find_all("form")
 
-        form_tag = html_soup.find("form", attrs=find_attrs)
-
-        if form_tag is None:
+        if form_nodes is None or len(form_nodes) == 0:
             raise RuntimeError("no form found in markup")
+        
+        form_node = form_nodes[index]
 
         self.__reset_attributes()
 
-        for name, value in form_tag.attrs.items():
+        for name, value in form_node.attrs.items():
             self._attributes[name] = value
 
-        for input_tag in self._find_all_input_tags(form_tag, None):
+        for input_tag in self._find_all_input_tags(form_node, None):
             self._fields.extend(self._parse_input_tag(input_tag, parsers))
 
-        if form_tag.attrs.get("id", None) is not None:
+        if form_node.attrs.get("id", None) is not None:
+            # Form's with an "id" attribute can enable fields to be placed
+            # outside the "form" tag node.
 
-            for input_tag in self._find_all_input_tags(html_soup, form_tag.attrs["id"]):
+            for input_tag in self._find_all_input_tags(html_soup, form_node.attrs["id"]):
                 self._fields.extend(self._parse_input_tag(input_tag, parsers))
 
     def _find_all_input_tags(self, form_tag: 'bs4.Tag', form_id: str = None) -> 'Iterator[bs4.Tag]':
@@ -162,3 +165,49 @@ class Form:
             "method": None,
             "enctype": None
         }
+
+    @classmethod
+    def parse_by_name(cls, html: str, form_name: str) -> 'Form':
+        """
+        Finds and returns a Form with a matching name attribute.
+
+        :param html: HTML markup string to parse
+
+        :param form_name: A value to match a form's name attribute to.
+        """
+
+        parser = BeautifulSoup(html, "html5lib")
+
+        index = None
+        for idx, form in enumerate(parser.find_all("form")):
+
+            if form.attrs.get("name", None) == form_name:
+
+                index = idx
+
+                break
+
+        return cls(parser, index)
+
+    @classmethod
+    def parse_by_id_attribute(cls, html: str, form_id: str) -> 'Form':
+        """
+        Finds and returns a Form with a matching id attribute.
+
+        :param html: HTML markup string to parse.
+
+        :param form_id: A value to match a form's id attribute to.
+        """
+
+        parser = BeautifulSoup(html, "html5lib")
+
+        index = None
+        for idx, form in enumerate(parser.find_all("form")):
+
+            if form.attrs.get("id", None) == form_id:
+
+                index = idx
+
+                break
+
+        return cls(parser, index)
