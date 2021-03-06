@@ -1,0 +1,162 @@
+from collections.abc import Iterable, MutableSequence
+from typing import List
+
+from .form_data_field import FormDataField
+
+
+class FormDataFieldCollection(MutableSequence):
+    """
+    An indexed collection of FormDataField objects. As FormDataField objects
+    are added to the collection, they are also added to an index to enable
+    lookups of the fields using the "index()" method.
+    """
+
+    def __init__(self, fields: List[FormDataField] = None):
+
+        self.__fields = []
+
+        # Indexes used by the index() method to optimize searching for fields.
+        self.__field_name_index = {}
+        self.__field_name_value_index = {}
+
+        # A flag to let the index() method know that it needs to refresh the
+        # index before doing a lookup.
+        self.__is_dirty = False
+
+        if fields is not None:
+            self.extend(fields)
+
+    def index(self, name: str, value: str = None) -> int:
+        """
+        Return zero-based index of the first field providing a matching name
+        and optional value.
+
+        :param name: A "name" to match in the collection of FormDataFields.
+
+        :param value: An optional "value" to match in the collection of
+            FormDataFields.
+        """
+
+        self.__refresh_indexes()
+
+        if value is None:
+            return self.__field_name_index[name][0]
+
+        return self.__field_name_value_index[(name, value, )]
+
+    def insert(self, index: int, value: FormDataField):
+        """
+        Inserts a FormDataField at the given index. Note this is a very
+        intensive operation, as each insert triggers a rebuild of the
+        object's indexes.
+
+        :param index: The location in the collection to insert the given
+            value at.
+
+        :param value: The value to be inserted into the collection.
+        """
+
+        self.__is_dirty = True
+
+        self.__fields.insert(index, value)
+
+    def remove(self, value: FormDataField):
+        """
+        Removes a matching object from the collection.
+
+        :param value: A copy of the FormDataField to remove from the
+            collection.
+        """
+
+        self.__is_dirty = True
+
+        self.__fields.remove(value)
+
+    def sort(self):
+        """
+        Sorts the collection of fields in place.
+        """
+
+        self.__is_dirty = True
+
+        self.__fields.sort()
+
+    def __add_field_to_index(self, index: int, field: FormDataField):
+        """
+        Create a new entry to the indexes.
+
+        :param index: The location of the field in the collection.
+
+        :param field: The FormDataField object to obtain key values from.
+        """
+
+        if field.name not in self.__field_name_index:
+            self.__field_name_index[field.name] = []
+
+        self.__field_name_index[field.name].append(index)
+        self.__field_name_index[field.name].sort()
+
+        key = (field.name, field.value, )
+        if key not in self.__field_name_value_index:
+            self.__field_name_value_index[key] = index
+
+    def __refresh_indexes(self):
+        """
+        Rebuilds the indexes.
+        """
+
+        if not self.__is_dirty:
+            # The collection hasn't been marked dirty, there is nothing to do.
+            return
+
+        self.__field_name_index = {}
+        self.__field_name_value_index = {}
+
+        for index, item in enumerate(self.__fields):
+            self.__add_field_to_index(index, item)
+
+        self.__is_dirty = False
+
+    def __getitem__(self, index: int) -> FormDataField:
+        """
+        Fetches a FormDataField from the collection using the given index.
+        """
+
+        self.__is_dirty = True
+
+        if isinstance(index, slice):
+            raise TypeError("slice is not supported")
+
+        return self.__fields[index]
+
+    def __setitem__(self, index: int, value: FormDataField):
+        """
+        Sets the FormDataField in the collection to the new value.
+
+        :param index: The location to update with the given value.
+
+        :param new_value: A FormDataField to replace the current
+            FormDataField found at the given index.
+        """
+
+        self.__is_dirty = True
+
+        self.__fields[index] = value
+
+    def __delitem__(self, index: int):
+        """
+        Removes a FormDataField from the collection.
+
+        :param index: The location to update with the given value.
+        """
+
+        self.__is_dirty = True
+
+        del self.__fields[index]
+
+    def __len__(self) -> int:
+        """
+        Return the number of entries in the collection.
+        """
+
+        return len(self.__fields)
