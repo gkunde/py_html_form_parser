@@ -9,6 +9,7 @@ Parse any static HTML web form into a data model.
 The latest version of the listed libraries will work. Older versions *should* work as well. 
 
 Requires:
+
 * BeautifulSoup4
 * html5lib
 
@@ -18,19 +19,33 @@ Many websites continue to use static HTML forms as a primary interface to their 
 ## Usage
 The fields and their attributes are stored in a flattened collection. The models follow how the data would be presented if a traditional web browser were to submit the form. This means that element collections, such as "select," are split into individual elements. FormElement's provide properties to assist in re-grouping element sets.
 
-### FormElement Properties
+### Data Models
+Three primary data models are used. Each 
+
+#### FormData
+This object represents a single form having been parsed from the HTML mark-up and in a state where a web browser would submit the contents.
+
+|Property |Meaning |
+|:--------|:-------|
+|name |The name provided to the form in the HTML markup. This serves only to help differentiate different forms. |
+|action |The URL the form data will be posted to. |
+|method |The HTTP action that will be used to send the data, default is `GET`. |
+|enctype |The encoding type the HTML markup provided as how to send the form data. |
+|fields |A collection of the parsed HTML form's fields. |
+
+#### FormDataField
+This object is used to represent the HTML form input fields. The parsing of the page will break each of the input elements into individual FormDataField objects. See the parsing section for more information.
 |Property|Meaning|
 |:-------|:------|
-|primary_type |Maps to an element's tag such as: button, input, select, or textarea|
-|secondary_type |Maps to an element's type attribute |
 |name |The name attribute of the element |
 |value |The value attribute of the element |
-|is_selected |A flag to indicate the element is selected to be submitted during form submission. |
-|binary_path |A local file path, to a file that would be submitted with the form data. When used, the "name" property is intended to be used as the destination file name. |
+|filename |The filename to present for the file data stored in the value property. |
+|is_active |A flag to indicate the object is selected to be submitted during form submission. |
 
 ## Examples
 For all examples, an assumption is made that the markup to be parsed has already been fetched into a variable called "html_doc."
 
+> **These examples are out of date and no longer represent the current models and design of the library.**
 ### Example 1 &ndash; Parsing form markup and accessing a field by name
 ```python
 import html_form_parser
