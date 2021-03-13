@@ -6,11 +6,9 @@ class FormDataField:
     Stores the field name and value for a form post field. To attach a file
     to the field, use the add_file_attachment.
 
-    It is recommended that you place a filepath in the "value" property and
-    use the "filename" property as a flag for the field representing a file to
-    be uploaded.
-
-    If you put file data directly into the value, make sure it is binary data.
+    If a file attachment has been added to the object, the "value" property
+    will become read-only. The file attachement must be removed before the
+    value can be changed.
 
     :param name: The form data field name
 
