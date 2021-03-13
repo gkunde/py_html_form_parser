@@ -26,21 +26,29 @@ class FormDataFieldCollection(MutableSequence):
         if fields is not None:
             self.extend(fields)
 
-    def index(self, name: str, value: str = None) -> int:
+    def index_by_name(self, name: str) -> int:
         """
-        Return zero-based index of the first field providing a matching name
-        and optional value.
+        Return zero-based index of the first field providing a matching name.
 
         :param name: A "name" to match in the collection of FormDataFields.
-
-        :param value: An optional "value" to match in the collection of
-            FormDataFields.
         """
 
         self.__refresh_indexes()
 
-        if value is None:
-            return self.__field_name_index[name][0]
+        return self.__field_name_index[name][0]
+
+    def index_by_name_value(self, name: str, value: str) -> int:
+        """
+        Return zero-based index of the first field providing a matching name
+        and value.
+
+        :param name: A "name" to match in the collection of FormDataFields.
+
+        :param value: A "value" to match in the collection of
+            FormDataFields.
+        """
+
+        self.__refresh_indexes()
 
         return self.__field_name_value_index[(name, value, )]
 
@@ -60,26 +68,14 @@ class FormDataFieldCollection(MutableSequence):
 
         self.__fields.insert(index, value)
 
-    def remove(self, value: FormDataField):
-        """
-        Removes a matching object from the collection.
-
-        :param value: A copy of the FormDataField to remove from the
-            collection.
-        """
-
-        self.__is_dirty = True
-
-        self.__fields.remove(value)
-
-    def sort(self):
+    def sort(self, key=None, reverse=False):
         """
         Sorts the collection of fields in place.
         """
 
         self.__is_dirty = True
 
-        self.__fields.sort()
+        self.__fields.sort(key=key, reverse=reverse)
 
     def __add_field_to_index(self, index: int, field: FormDataField):
         """

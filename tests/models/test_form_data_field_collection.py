@@ -26,14 +26,14 @@ class Test_FormDataFieldCollection(unittest.TestCase):
         obj = FormDataFieldCollection()
         obj.extend([self.field2, self.field1, ])
 
-        self.assertEqual(obj.index(self.field1.name), 1)
+        self.assertEqual(obj.index_by_name(self.field1.name), 1)
 
     def test_index_name_value(self):
 
         obj = FormDataFieldCollection()
         obj.extend([self.field2, self.field1, ])
 
-        self.assertEqual(obj.index(self.field1.name, self.field1.value), 1)
+        self.assertEqual(obj.index_by_name_value(self.field1.name, self.field1.value), 1)
 
     def test_sort(self):
 
@@ -44,3 +44,19 @@ class Test_FormDataFieldCollection(unittest.TestCase):
         self.assertEqual(len(obj), 2)
         self.assertEqual(obj[0], self.field1)
         self.assertEqual(obj[1], self.field2)
+
+    def test_clear(self):
+
+        obj = FormDataFieldCollection()
+        obj.extend([self.field2, self.field1, ])
+        obj.clear()
+
+        self.assertEqual(len(obj), 0)
+
+    def test_insert(self):
+
+        obj = FormDataFieldCollection()
+        obj.extend([self.field2, self.field1, ])
+        obj.insert(1, self.field1)
+
+        self.assertEqual(len(obj), 3)
