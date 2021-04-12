@@ -59,14 +59,14 @@ class Test_SelectFormElementParser(unittest.TestCase):
         self.assertEqual("buzz", elements[1].value)
         self.assertEqual("woof", elements[2].value)
 
-    def test_is_selected(self):
+    def test_is_submitable(self):
 
         obj = SelectFormElementParser()
         elements = obj.parse(self.TESTVALUE_CLASSICVALUE)
 
-        self.assertTrue(elements[0].is_selected)
-        self.assertFalse(elements[1].is_selected)
-        self.assertFalse(elements[2].is_selected)
+        self.assertTrue(elements[0].is_submitable)
+        self.assertFalse(elements[1].is_submitable)
+        self.assertFalse(elements[2].is_submitable)
 
     def test_suitable(self):
 

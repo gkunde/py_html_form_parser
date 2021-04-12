@@ -8,13 +8,6 @@ class Test_ButtonInputFormElementParser(unittest.TestCase):
     DEFAULT_TESTVALUE = "<input />"
     TEST_VALUE = "<input type=\"foo\" name=\"magic\" value=\"100\" />"
 
-    def test_default_type(self):
-
-        obj = ButtonInputFormElementParser()
-        form_elements = obj.parse(self.DEFAULT_TESTVALUE)
-
-        self.assertEqual(obj._default_type, form_elements[0].type_attribute)
-
     def test_default_value(self):
 
         obj = ButtonInputFormElementParser()
@@ -29,12 +22,12 @@ class Test_ButtonInputFormElementParser(unittest.TestCase):
 
         self.assertEqual(obj._default_name, form_elements[0].name)
 
-    def test_default_is_selected(self):
+    def test_default_is_submitable(self):
 
         obj = ButtonInputFormElementParser()
         form_element = obj.parse(self.DEFAULT_TESTVALUE)
 
-        self.assertFalse(form_element[0].is_selected)
+        self.assertFalse(form_element[0].is_submitable)
 
     def test_suitable_button(self):
 

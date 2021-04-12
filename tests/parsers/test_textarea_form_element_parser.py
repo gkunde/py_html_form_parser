@@ -7,14 +7,6 @@ class Test_TextareaFormelementParser(unittest.TestCase):
 
     DEFAULT_TESTVALUE = "<textarea></textarea>"
 
-    def test_default_secondary_type(self):
-
-        obj = TextareaFormElementParser()
-        form_elements = obj.parse(self.DEFAULT_TESTVALUE)
-
-        self.assertEqual(1, len(form_elements))
-        self.assertIsNone(form_elements[0].type_attribute)
-
     def test_parse_value(self):
 
         obj = TextareaFormElementParser()

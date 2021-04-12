@@ -1,213 +1,140 @@
 import re
-from typing import List, Iterator
+from typing import List
 
 from bs4 import BeautifulSoup, Tag
 
-from .elements import FormElement
-from .form_field_collection import FormFieldCollection
-from .parsers import form_element_parser
+from .models.form_data import FormData
+from .models.form_data_entry import FormDataEntry
+from .parsers import form_data_entry_parser
 
 
-class Form:
+class HtmlFormParser:
     """
-    Creates a HTML form instance providing access to form attributes and form
-    fields contained within the form. The first encountered form is parsed by
-    default, while providing a name will search for a form of that name to be
-    parsed instead.
-
-    Primary attributes are provided as readonly properties, access to
-    non-essential form attributes are available in the _attributes property.
-
-    Form field elements are parsed into a collection provided by the fields
-    property. Note, form controls buttons for "reset" and "search" are not
-    captured.
-
-    :param html: A string containing HTML markup, or a BeautifulSoup
-        compatible object.
-
-    :param index: When more than one form is available, select form by zero
-        based index.
+    Parse and extract HTML forms from a HTML page.
     """
 
-    # form element types to skip when parsing
-    __EXCLUDE_TYPES = ("reset", "search", )
-
-    def __init__(self, html: str, index: int = 0):
-
-        self._attributes = {}
-        self.__reset_attributes()
-
-        self._fields = FormFieldCollection()
-
-        if html is not None:
-            self.__parse(html, index)
-
-    @property
-    def name(self) -> str:
-        return self._attributes["name"]
-
-    @property
-    def action(self) -> str:
-        return self._attributes["action"]
-
-    @property
-    def method(self) -> str:
-        return self._attributes["method"]
-
-    @property
-    def enctype(self) -> str:
-        return self._attributes["enctype"]
-
-    @property
-    def fields(self) -> FormFieldCollection:
-        return self._fields
-
-    def __parse(self, html: str, index: int = 0):
+    def __init__(self, markup: str = None, parser: str = None):
         """
-        Parse HTML markup for "form" element, optionally selecting "form"
-        element by name.
+        :param markup: A string containing HTML markup.
 
-        :param html: HTML markup
-
-        :param name: Filter to select form by given name, else first form is
-            returned.
+        :param parser: A string containing a valid BeautifulSoup parsing library name.
         """
 
-        html_soup = html
-        if not isinstance(html_soup, (Tag, BeautifulSoup, )):
-            html_soup = BeautifulSoup(html, "html5lib")
+        self.forms = []
 
-        # A collection of parsers. The order does matter, parsers earlier in
-        # the list are more specific than parsers at the end.
+        if markup is not None:
+            self.parse(markup, parser)
+
+    def parse(self, markup: str, parser: str = None) -> List[FormData]:
+        """
+        Convert a HTML page into Form Data objects
+
+        :param markup: A string containing HTML markup.
+
+        :param parser: A string property to select a BeutifulSoup Parser.
+
+        :returns: A collection of ForData objects. The same objects are
+            stored within the object.
+        """
+
+        if parser is None:
+            parser = "html5lib"
+
         parsers = [
-            form_element_parser.SelectableInputFormElementParser(),
-            form_element_parser.ColorInputFormElementParser(),
-            form_element_parser.RangeInputFormElementParser(),
-            form_element_parser.SubmitInputFormElementParser(),
-            form_element_parser.ButtonInputFormElementParser(),
-            form_element_parser.ImageInputFormElementParser(),
-            form_element_parser.ButtonFormElementParser(),
-            form_element_parser.InputFormElementParser(),
-            form_element_parser.SelectFormElementParser(),
-            form_element_parser.TextareaFormElementParser(),
-            form_element_parser.FormElementParser(),
+            form_data_entry_parser.SelectableInputFormElementParser(),
+            form_data_entry_parser.ColorInputFormElementParser(),
+            form_data_entry_parser.RangeInputFormElementParser(),
+            form_data_entry_parser.SubmitInputFormElementParser(),
+            form_data_entry_parser.ButtonInputFormElementParser(),
+            form_data_entry_parser.ImageInputFormElementParser(),
+            form_data_entry_parser.ButtonFormElementParser(),
+            form_data_entry_parser.InputFormElementParser(),
+            form_data_entry_parser.SelectFormElementParser(),
+            form_data_entry_parser.TextareaFormElementParser(),
+            form_data_entry_parser.FormDataEntryParser(),
         ]
 
-        form_nodes = html_soup.find_all("form")
+        bs4_parser = BeautifulSoup(markup, parser)
 
-        if form_nodes is None or len(form_nodes) == 0:
-            raise RuntimeError("no form found in markup")
-        
-        form_node = form_nodes[index]
+        parsed_forms = bs4_parser.find_all("form")
 
-        self.__reset_attributes()
+        parsed_fields = bs4_parser.find_all(("button", "input", "select", "textarea", ))
 
-        for name, value in form_node.attrs.items():
-            self._attributes[name] = value
+        form_id_map = {}
+        for index, parsed_form in parsed_forms:
 
-        for input_tag in self._find_all_input_tags(form_node, None):
-            self._fields.extend(self._parse_input_tag(input_tag, parsers))
+            if "id" in parsed_form.attrs:
+                form_id_map[parsed_form.attrs["id"]] = index
 
-        if form_node.attrs.get("id", None) is not None:
-            # Form's with an "id" attribute can enable fields to be placed
-            # outside the "form" tag node.
+            self.forms.append(self._create_form_data(parsed_form))
 
-            for input_tag in self._find_all_input_tags(html_soup, form_node.attrs["id"]):
-                self._fields.extend(self._parse_input_tag(input_tag, parsers))
+        # Fields associate to the nearest containing form node, or specify their form owner by attribute.
+        # https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#association-of-controls-and-forms
+        for parsed_field in parsed_fields:
 
-    def _find_all_input_tags(self, form_tag: 'bs4.Tag', form_id: str = None) -> 'Iterator[bs4.Tag]':
+            form_index = None
+            if "form" in parsed_field.attrs:
+                form_index = form_id_map.get(parsed_field.attrs["form"], None)
+
+            if form_index is None:
+
+                parent_form = parsed_field.find_parent("form")
+                if parent_form is not None:
+                    form_index = parsed_forms.index(parsed_form)
+
+            if form_index is not None:
+                self.forms[form_index].fields.extend(
+                    self._create_form_data_field(parsed_field, parsers))
+
+        return self.forms
+
+    def _create_form_data(self, parsed_form: Tag) -> FormData:
         """
-        Yields all input field child tags from provided form_tag.
+        Create Form Data from parsed form node object.
 
-        :param form_tag: A html tag to fetch input tags from.
+        :param parsed_form: A BeautifulSoup object containing a form.
 
-        :param form_id: When not None, returns all input tags with a matching
-            value in their "form" attribute.
-        """
-
-        attrs = {"form": False}
-        if form_id is not None:
-            attrs = {"form": form_id}
-
-        for input_tag in form_tag.find_all(("button", "input", "select", "textarea", ), attrs=attrs):
-            yield input_tag
-
-    def _parse_input_tag(self, input_tag: 'bs4.Tag', parsers: List[form_element_parser.FormElementParser]) -> List[FormElement]:
-        """
-        Returns a collection of FormElement objects from the given input_tag.
-
-        :param input_tag: The form input tag to parse into FormElements
-
-        :param parsers: A collection of parsers to be used for identifying and
-            parsing the provided input_tag.
+        :returns: A FormData object
         """
 
-        elements = []
+        form_data = FormData()
 
-        field_type = input_tag.attrs.get("type", "").strip().lower()
+        for key, val in parsed_form.attrs.items():
 
-        for parser in parsers:
+            match_key = key.lower()
 
-            if parser.suitable(input_tag.name, field_type):
-                elements = parser.parse(input_tag)
-                break
+            if match_key == "name":
+                form_data.name = val
 
-        return elements
+            elif match_key == "action":
+                form_data.action = val.strip()
 
-    def __reset_attributes(self) -> None:
+            elif match_key == "method":
+                form_data.method = val.strip().upper()
+
+            elif match_key == "enctype":
+                form_data.enctype = val.strip()
+
+        return form_data
+
+    def _create_form_data_field(self, parsed_form_field: Tag, field_parsers: List[form_data_entry_parser.InputFormElementParser] = None) -> List[FormDataEntry]:
         """
-        Reset the _attributes collection to default values.
-        """
+        Create Form Data Entries from pasred form input element.
 
-        self._attributes = {
-            "name": None,
-            "action": None,
-            "method": None,
-            "enctype": None
-        }
+        :param parsed_form_field: A BeautifulSoup object containing an input field.
 
-    @classmethod
-    def parse_by_name(cls, html: str, form_name: str) -> 'Form':
-        """
-        Finds and returns a Form with a matching name attribute.
+        :param field_parsers: A collection of HTML input element parsers.
 
-        :param html: HTML markup string to parse
-
-        :param form_name: A value to match a form's name attribute to.
+        :returns: A collection of Form Data Entry objects
         """
 
-        parser = BeautifulSoup(html, "html5lib")
+        for parser in field_parsers:
 
-        index = None
-        for idx, form in enumerate(parser.find_all("form")):
+            field_type = parsed_form_field.attrs.get("type", None)
 
-            if form.attrs.get("name", None) == form_name:
+            if field_type is not None:
 
-                index = idx
+                if parser.suitable(parsed_form_field.name, field_type.strip().lower()):
+                    return parser.parse(parsed_form_field)
 
-                break
-
-        return cls(parser, index)
-
-    @classmethod
-    def parse_by_id_attribute(cls, html: str, form_id: str) -> 'Form':
-        """
-        Finds and returns a Form with a matching id attribute.
-
-        :param html: HTML markup string to parse.
-
-        :param form_id: A value to match a form's id attribute to.
-        """
-
-        parser = BeautifulSoup(html, "html5lib")
-
-        index = None
-        for idx, form in enumerate(parser.find_all("form")):
-
-            if form.attrs.get("id", None) == form_id:
-
-                index = idx
-
-                break
-
-        return cls(parser, index)
+        return []

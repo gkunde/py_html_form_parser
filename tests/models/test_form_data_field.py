@@ -1,176 +1,250 @@
 import unittest
 
-from html_form_parser.models import form_data_field
+from html_form_parser.models import form_data_entry
 
 
 class Test_FormDataField(unittest.TestCase):
 
-    example_name = "example"
-    example_value = "example"
-    example_filename = "example.txt"
-    example_filename2 = "sample.txt"
-    example_filepath = "/example/path/example.txt"
+    example0_name = "452e5de9-e0f2-4754-9fa5-a8d04af600ae"
+    example0_value = "5e34eb53-c4e5-43de-9630-179830a150c5"
+    example0_filename = "f8663ede-e712-43d6-817f-ac2e624150fd"
+
+    example1_name = "452e5de9-e0f2-4754-9fa5-a8d04af600ae"
+    example1_value = "5e34eb53-c4e5-43de-9630-179830a150c5"
+    example1_filename = "f8663ede-e712-43d6-817f-ac2e624150fd"
+
+    example2_name = "0f5a6832-8171-4fd7-ada6-edb2c59fff17"
+    example2_value = "f70da385-aa33-4347-8b4b-09ea410575f5"
+    example2_filename = "1191a284-e509-4285-91a1-b747f41d87ec"
 
     def test_new_object(self):
 
-        obj = form_data_field.FormDataField(self.example_name)
+        obj = form_data_entry.FormDataEntry()
 
-        self.assertEqual(obj.name, self.example_name)
+        self.assertIsNone(obj.name)
         self.assertIsNone(obj.value)
         self.assertIsNone(obj.filename)
-        self.assertTrue(obj.is_active)
+        self.assertTrue(obj.is_submitable)
+
+    def test_new_object_with_name(self):
+
+        obj = form_data_entry.FormDataEntry(name=self.example0_name)
+
+        self.assertEqual(obj.name, self.example0_name)
 
     def test_new_object_with_value(self):
 
-        obj = form_data_field.FormDataField(self.example_name, value=self.example_value)
+        obj = form_data_entry.FormDataEntry(value=self.example0_value)
 
-        self.assertEqual(obj.name, self.example_name)
-        self.assertEqual(obj.value, self.example_value)
-        self.assertIsNone(obj.filename)
-        self.assertTrue(obj.is_active)
+        self.assertEqual(obj.value, self.example0_value)
 
-    def test_new_object_not_active(self):
+    def test_new_object_with_filename(self):
 
-        obj = form_data_field.FormDataField(self.example_name, is_active=False)
+        obj = form_data_entry.FormDataEntry(filename=self.example0_filename)
 
-        self.assertEqual(obj.name, self.example_name)
-        self.assertIsNone(obj.value)
-        self.assertIsNone(obj.filename)
-        self.assertFalse(obj.is_active)
+        self.assertEqual(obj.filename, self.example0_filename)
 
-    def test_add_file_attachement(self):
+    def test_new_object_with_submitable(self):
 
-        obj = form_data_field.FormDataField(self.example_name)
-        obj.add_file_attachment(self.example_filepath, None)
+        obj = form_data_entry.FormDataEntry(is_submitable=False)
 
-        self.assertEqual(obj.filename, self.example_filename)
-        self.assertEqual(obj.value, self.example_filepath)
-
-    def test_add_file_attachement_with_filename(self):
-
-        obj = form_data_field.FormDataField(self.example_name)
-        obj.add_file_attachment(self.example_filepath, self.example_filename2)
-
-        self.assertEqual(obj.filename, self.example_filename2)
-        self.assertEqual(obj.value, self.example_filepath)
-
-    def test_remove_file_attachement(self):
-
-        obj = form_data_field.FormDataField(self.example_name)
-        obj.add_file_attachment(self.example_filepath, None)
-
-        self.assertEqual(obj.filename, self.example_filename)
-        self.assertEqual(obj.value, self.example_filepath)
-
-        obj.remove_file_attachment()
-
-        self.assertIsNone(obj.filename)
-        self.assertIsNone(obj.value)
+        self.assertFalse(obj.is_submitable)
 
     def test_set_name(self):
 
-        obj = form_data_field.FormDataField("sample")
+        obj = form_data_entry.FormDataEntry()
+        obj.name = self.example0_name
 
-        with self.assertRaises(AttributeError) as exp:
-            obj.name = self.example_name
-
-        self.assertEquals(str(exp.exception), "can't set attribute")
+        self.assertEqual(obj.name, self.example0_name)
 
     def test_set_value(self):
 
-        obj = form_data_field.FormDataField(self.example_name)
-        obj.value = self.example_value
+        obj = form_data_entry.FormDataEntry()
+        obj.value = self.example0_value
 
-        self.assertEqual(obj.value, self.example_value)
+        self.assertEqual(obj.value, self.example0_value)
 
-    def test_set_value_with_file_attachment(self):
+    def test_set_filename(self):
 
-        obj = form_data_field.FormDataField(self.example_name)
-        obj.add_file_attachment(self.example_filepath, None)
+        obj = form_data_entry.FormDataEntry()
+        obj.filename = self.example0_filename
 
-        with self.assertRaises(RuntimeError) as exp:
-            obj.value = self.example_value
+        self.assertEqual(obj.filename, self.example0_filename)
 
-        self.assertEqual(str(exp.exception), "value cannot be changed when file attached.")
+    def test_set_submitable(self):
 
-    def test_equal(self):
+        obj = form_data_entry.FormDataEntry()
+        obj.is_submitable = False
 
-        obj1 = form_data_field.FormDataField(self.example_name, self.example_value)
-        obj2 = form_data_field.FormDataField(self.example_name, self.example_value)
+        self.assertFalse(obj.is_submitable)
 
-        self.assertEqual(obj1, obj2)
+    def test_positional(self):
 
-    def test_not_equal(self):
+        obj = form_data_entry.FormDataEntry(
+            self.example0_name,
+            self.example0_value,
+            self.example0_filename)
 
-        obj1 = form_data_field.FormDataField(self.example_name, self.example_value)
-        obj2 = form_data_field.FormDataField(self.example_name, self.example_filename2)
+        self.assertEqual(obj.name, self.example0_name)
+        self.assertEqual(obj.value, self.example0_value)
+        self.assertEqual(obj.filename, self.example0_filename)
 
-        self.assertNotEqual(obj1, obj2)
+    def test_eq(self):
 
-    def test_gt(self):
+        obj0 = form_data_entry.FormDataEntry(
+            self.example0_name,
+            self.example0_value,
+            self.example0_filename)
 
-        obj1 = form_data_field.FormDataField(self.example_name, self.example_filename2)
-        obj2 = form_data_field.FormDataField(self.example_name, self.example_value)
+        obj1 = form_data_entry.FormDataEntry(
+            self.example1_name,
+            self.example1_value,
+            self.example1_filename)
 
-        self.assertGreater(obj1, obj2)
-
-    def test_gt_equal(self):
-
-        obj1 = form_data_field.FormDataField(self.example_name, self.example_value)
-        obj2 = form_data_field.FormDataField(self.example_name, self.example_value)
-
-        result = obj1 > obj2
-
-        self.assertFalse(result)
-
-    def test_ge(self):
-
-        obj1 = form_data_field.FormDataField(self.example_name, self.example_filename2)
-        obj2 = form_data_field.FormDataField(self.example_name, self.example_value)
-
-        result = obj1 >= obj2
+        result = obj0 == obj1
 
         self.assertTrue(result)
 
-    def test_ge_equal(self):
+    def test_ne(self):
 
-        obj1 = form_data_field.FormDataField(self.example_name, self.example_value)
-        obj2 = form_data_field.FormDataField(self.example_name, self.example_value)
+        obj0 = form_data_entry.FormDataEntry(
+            self.example0_name,
+            self.example0_value,
+            self.example0_filename)
 
-        result = obj1 >= obj2
+        obj1 = form_data_entry.FormDataEntry(
+            self.example2_name,
+            self.example2_value,
+            self.example2_filename)
+
+        result = obj0 != obj1
+
+        self.assertTrue(result)
+
+    def test_le(self):
+
+        obj0 = form_data_entry.FormDataEntry(
+            self.example0_name,
+            self.example0_value,
+            self.example0_filename)
+
+        obj1 = form_data_entry.FormDataEntry(
+            self.example2_name,
+            self.example2_value,
+            self.example2_filename)
+
+        result = obj1 <= obj0
+
+        self.assertTrue(result)
+
+    def test_ge(self):
+
+        obj0 = form_data_entry.FormDataEntry(
+            self.example0_name,
+            self.example0_value,
+            self.example0_filename)
+
+        obj1 = form_data_entry.FormDataEntry(
+            self.example2_name,
+            self.example2_value,
+            self.example2_filename)
+
+        result = obj0 >= obj1
+
+        self.assertTrue(result)
+
+    def test_le_equal_values(self):
+
+        obj0 = form_data_entry.FormDataEntry(
+            self.example0_name,
+            self.example0_value,
+            self.example0_filename)
+
+        obj1 = form_data_entry.FormDataEntry(
+            self.example1_name,
+            self.example1_value,
+            self.example1_filename)
+
+        result = obj0 <= obj1
+
+        self.assertTrue(result)
+
+    def test_ge_equal_values(self):
+
+        obj0 = form_data_entry.FormDataEntry(
+            self.example0_name,
+            self.example0_value,
+            self.example0_filename)
+
+        obj1 = form_data_entry.FormDataEntry(
+            self.example1_name,
+            self.example1_value,
+            self.example1_filename)
+
+        result = obj0 >= obj1
 
         self.assertTrue(result)
 
     def test_lt(self):
 
-        obj1 = form_data_field.FormDataField(self.example_name, self.example_value)
-        obj2 = form_data_field.FormDataField(self.example_name, self.example_filename2)
+        obj0 = form_data_entry.FormDataEntry(
+            self.example0_name,
+            self.example0_value,
+            self.example0_filename)
 
-        self.assertLess(obj1, obj2)
+        obj1 = form_data_entry.FormDataEntry(
+            self.example2_name,
+            self.example2_value,
+            self.example2_filename)
 
-    def test_lt_equal(self):
-
-        obj1 = form_data_field.FormDataField(self.example_name, self.example_value)
-        obj2 = form_data_field.FormDataField(self.example_name, self.example_value)
-
-        result = obj1 < obj2
-
-        self.assertFalse(result)
-
-    def test_le(self):
-
-        obj1 = form_data_field.FormDataField(self.example_name, self.example_value)
-        obj2 = form_data_field.FormDataField(self.example_name, self.example_filename2)
-
-        result = obj1 <= obj2
+        result = obj1 < obj0
 
         self.assertTrue(result)
 
-    def test_le_equal(self):
+    def test_gt(self):
 
-        obj1 = form_data_field.FormDataField(self.example_name, self.example_value)
-        obj2 = form_data_field.FormDataField(self.example_name, self.example_value)
+        obj0 = form_data_entry.FormDataEntry(
+            self.example0_name,
+            self.example0_value,
+            self.example0_filename)
 
-        result = obj1 <= obj2
+        obj1 = form_data_entry.FormDataEntry(
+            self.example2_name,
+            self.example2_value,
+            self.example2_filename)
+
+        result = obj0 > obj1
+
+        self.assertTrue(result)
+
+    def test_lt_equal_values(self):
+
+        obj0 = form_data_entry.FormDataEntry(
+            "self.example0_name",
+            "self.example0_value",
+            "self.example0_filename")
+
+        obj1 = form_data_entry.FormDataEntry(
+            "self.example1_name",
+            "self.example1_value",
+            "self.example1_filename")
+
+        result = obj0 < obj1
+
+        self.assertTrue(result)
+
+    def test_gt_equal_values(self):
+
+        obj0 = form_data_entry.FormDataEntry(
+            "self.example0_name",
+            "self.example0_value",
+            "self.example0_filename")
+
+        obj1 = form_data_entry.FormDataEntry(
+            "self.example1_name",
+            "self.example1_value",
+            "self.example1_filename")
+
+        result = obj1 > obj0
 
         self.assertTrue(result)

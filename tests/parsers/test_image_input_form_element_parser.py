@@ -31,13 +31,13 @@ class Test_ImageInputFormElementParser(unittest.TestCase):
         self.assertEqual(obj._default_value, elements[0].value)
         self.assertEqual(obj._default_value, elements[1].value)
 
-    def test_default_is_selected(self):
+    def test_default_is_submitable(self):
 
         obj = ImageInputFormElementParser()
         elements = obj.parse(self.DEFAULT_TESTVALUE)
 
-        self.assertFalse(elements[0].is_selected)
-        self.assertFalse(elements[1].is_selected)
+        self.assertFalse(elements[0].is_submitable)
+        self.assertFalse(elements[1].is_submitable)
 
     def test_name(self):
 

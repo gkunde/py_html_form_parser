@@ -1,17 +1,17 @@
 from collections.abc import Iterable, MutableSequence
 from typing import List
 
-from .form_data_field import FormDataField
+from .form_data_entry import FormDataEntry
 
 
-class FormDataFieldCollection(MutableSequence):
+class FormDataEntryCollection(MutableSequence):
     """
     An indexed collection of FormDataField objects. As FormDataField objects
     are added to the collection, they are also added to an index to enable
     lookups of the fields using the "index()" method.
     """
 
-    def __init__(self, fields: List[FormDataField] = None):
+    def __init__(self, fields: List[FormDataEntry] = None):
 
         self.__fields = []
 
@@ -52,7 +52,7 @@ class FormDataFieldCollection(MutableSequence):
 
         return self.__field_name_value_index[(name, value, )]
 
-    def insert(self, index: int, value: FormDataField):
+    def insert(self, index: int, value: FormDataEntry):
         """
         Inserts a FormDataField at the given index. Note this is a very
         intensive operation, as each insert triggers a rebuild of the
@@ -77,7 +77,7 @@ class FormDataFieldCollection(MutableSequence):
 
         self.__fields.sort(key=key, reverse=reverse)
 
-    def __add_field_to_index(self, index: int, field: FormDataField):
+    def __add_field_to_index(self, index: int, field: FormDataEntry):
         """
         Create a new entry to the indexes.
 
@@ -113,19 +113,16 @@ class FormDataFieldCollection(MutableSequence):
 
         self.__is_dirty = False
 
-    def __getitem__(self, index: int) -> FormDataField:
+    def __getitem__(self, index: int) -> FormDataEntry:
         """
         Fetches a FormDataField from the collection using the given index.
         """
 
         self.__is_dirty = True
 
-        if isinstance(index, slice):
-            raise TypeError("slice is not supported")
-
         return self.__fields[index]
 
-    def __setitem__(self, index: int, value: FormDataField):
+    def __setitem__(self, index: int, value: FormDataEntry):
         """
         Sets the FormDataField in the collection to the new value.
 

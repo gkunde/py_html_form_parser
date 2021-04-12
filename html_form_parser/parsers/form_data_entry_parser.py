@@ -2,10 +2,10 @@ from typing import List
 
 from bs4 import BeautifulSoup, Tag
 
-from ..elements import FormElement
+from ..models.form_data_entry import FormDataEntry
 
 
-class FormElementParser:
+class FormDataEntryParser:
     """
     A parser for HTML form elements.
     """
@@ -18,7 +18,7 @@ class FormElementParser:
 
     __suitable_tags = ("button", "input", "select", "textarea", )
 
-    def parse(self, html: str) -> List[FormElement]:
+    def parse(self, html: str) -> List[FormDataEntry]:
         """
         Parse an HTML form element tag and generates a collection of form
         elements. A collection is returned as some elements such as "select"
@@ -30,21 +30,14 @@ class FormElementParser:
 
         bs4_parser = self._make_bs4_parser(html)
 
-        primary_type = self._get_tag_name(bs4_parser)
-        secondary_type = self._get_type_attr(bs4_parser)
-
         attribute_name = self._get_name_attr(bs4_parser)
         attribute_value = self._get_value_attr(bs4_parser)
         attribute_selected = self._get_selected_state(bs4_parser)
-        attribute_binary_path = None
 
-        form_element = FormElement(
+        form_element = FormDataEntry(
             name=attribute_name,
             value=attribute_value,
-            binary_path=attribute_binary_path,
-            is_selected=attribute_selected,
-            tag_name=primary_type,
-            type_attribute=secondary_type)
+            is_submitable=attribute_selected)
 
         return [form_element, ]
 
@@ -119,7 +112,7 @@ class FormElementParser:
         return bs4_parser.name
 
 
-class ButtonFormElementParser(FormElementParser):
+class ButtonFormElementParser(FormDataEntryParser):
     """
     A parser for HTML form button elements.
     """
@@ -144,7 +137,7 @@ class ButtonFormElementParser(FormElementParser):
         return tag_name == "button"
 
 
-class InputFormElementParser(FormElementParser):
+class InputFormElementParser(FormDataEntryParser):
     """
     A parser for HTML form input elements.
     """
@@ -169,11 +162,11 @@ class InputFormElementParser(FormElementParser):
         return tag_name == "input"
 
 
-class SelectFormElementParser(FormElementParser):
+class SelectFormElementParser(FormDataEntryParser):
 
     _default_is_selected = False
 
-    def parse(self, html: str) -> List[FormElement]:
+    def parse(self, html: str) -> List[FormDataEntry]:
         """
         Overrides base class to present a select element and its options set
         as a collection of form elements. This parser treats the select
@@ -186,20 +179,14 @@ class SelectFormElementParser(FormElementParser):
 
         for option in bs4_parser.find_all("option"):
 
-            primary_type = bs4_parser.name
-            secondary_type = self._default_type
             name = self._get_name_attr(bs4_parser)
             value = self._get_value_attr(option)
             is_selected = self._get_selected_state(option)
-            binary_path = None
 
             elements.append(
-                FormElement(name,
-                            value,
-                            binary_path,
-                            is_selected,
-                            primary_type,
-                            secondary_type))
+                FormDataEntry(name=name,
+                              value=value,
+                              is_submitable=is_selected))
 
         return elements
 
@@ -231,7 +218,7 @@ class SelectFormElementParser(FormElementParser):
         return bs4_parser.attrs.get("value", bs4_parser.get_text())
 
 
-class TextareaFormElementParser(FormElementParser):
+class TextareaFormElementParser(FormDataEntryParser):
     """
     Parser for HTML textarea elements.
     """
@@ -433,7 +420,7 @@ class ImageInputFormElementParser(SubmitInputFormElementParser):
 
     __name_attribute_suffixes = ("x", "y", )
 
-    def parse(self, html: str) -> List[FormElement]:
+    def parse(self, html: str) -> List[FormDataEntry]:
         """
         Overrides base class to return two FormElement objects. As this input
         element type provides an coordinate that indicates where a user has
@@ -453,14 +440,10 @@ class ImageInputFormElementParser(SubmitInputFormElementParser):
             if form_element.name is not None:
                 element_name = "%s.%s" % (form_element.name, suffix, )
 
-            form_elements.append(FormElement(
+            form_elements.append(FormDataEntry(
                 name=element_name,
                 value=form_element.value,
-                binary_path=form_element.binary_path,
-                is_selected=form_element.is_selected,
-                tag_name=form_element.tag_name,
-                type_attribute=form_element.type_attribute
-            ))
+                is_submitable=form_element.is_submitable))
 
         return form_elements
 
