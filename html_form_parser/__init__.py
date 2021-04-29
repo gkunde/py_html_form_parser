@@ -61,7 +61,7 @@ class HtmlFormParser:
         parsed_fields = bs4_parser.find_all(("button", "input", "select", "textarea", ))
 
         form_id_map = {}
-        for index, parsed_form in parsed_forms:
+        for index, parsed_form in enumerate(parsed_forms):
 
             if "id" in parsed_form.attrs:
                 form_id_map[parsed_form.attrs["id"]] = index
