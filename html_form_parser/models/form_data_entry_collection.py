@@ -6,9 +6,10 @@ from .form_data_entry import FormDataEntry
 
 class FormDataEntryCollection(MutableSequence):
     """
-    An indexed collection of FormDataField objects. As FormDataField objects
-    are added to the collection, they are also added to an index to enable
-    lookups of the fields using the "index()" method.
+    A collection of FormDataField objects. Providing methods for locating
+    entries in the collection by name, or name and value.
+
+    :param fields: A collection of fields to add to this instance.
     """
 
     def __init__(self, fields: List[FormDataEntry] = None):

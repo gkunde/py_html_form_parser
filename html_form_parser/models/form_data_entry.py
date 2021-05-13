@@ -2,12 +2,7 @@
 
 class FormDataEntry:
     """
-    Stores the field name and value for a form post field. To attach a file
-    to the field, use the add_file_attachment.
-
-    If a file attachment has been added to the object, the "value" property
-    will become read-only. The file attachement must be removed before the
-    value can be changed.
+    A form data entry model for storing HTML input field names and values.
 
     :param name: The form data field name
 
