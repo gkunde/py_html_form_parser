@@ -1,5 +1,5 @@
-# Python HTML Form Parser
-Parse any static HTML web form into a data model.
+# Python Web Form Browser
+A web browser for interacting with static or server side generated HTML web forms.
 
 > **IMPORTANT:**
 >
@@ -14,13 +14,13 @@ Requires:
 * html5lib
 
 ## Purpose
-Many websites continue to use static HTML forms as a primary interface to their applications. The goal with this library is to provide a client application with the ability to interact with a web form like a traditional web browser provides.
+Many websites continue to use static HTML forms as a presentation layer to their content. This enables an application to read that content in a normalized fashion.
 
 ## Usage
-The fields and their attributes are stored in a flattened collection. The models follow how the data would be presented if a traditional web browser were to submit the form. This means that element collections, such as "select," are split into individual elements. FormElement's provide properties to assist in re-grouping element sets.
+The forms and their fields are stored in a set of collections. The primary parser will parse and create a collection of forms. Each form will contain a collection of its associated fields. The data is maintained in a structure that enables an application to safely post back the data to the web forms endpoint.
 
 ### Data Models
-Three primary data models are used. Each 
+Three primary data models are used. FormData represents a single HTML web form. FormDataCollection is a collection of the fields associated to the FormData. FormDataEntry represents a single web form entity (not an element) as it would be sent to the web froms defined "action."
 
 #### FormData
 This object represents a single form having been parsed from the HTML mark-up and in a state where a web browser would submit the contents.
@@ -40,7 +40,26 @@ This object is used to represent the HTML form input fields. The parsing of the 
 |name |The name attribute of the element |
 |value |The value attribute of the element |
 |filename |The filename to present for the file data stored in the value property. |
-|is_active |A flag to indicate the object is selected to be submitted during form submission. |
+|is_submitable |A flag to indicate the object is selected to be submitted during form submission. |
+
+### Parsing
+A parser is provided to render the web form in the FormData model. This parser is able to render multiple forms contained in the HTML markup, and associate all fields to the correct parent form.
+
+Fields are parsed and broken down into individual entries.
+This means that an entry like the following will create a single FormDataEntry object:
+```html
+<input type="text" name="example" value="example value" />
+```
+
+A field like the following will create multiple FormDataEntry objects to represent each of the options:
+```html
+<select name="example">
+  <option value="value0">Option 1</option>
+  <option value="value1">Option 2</option>
+</select>
+```
+
+The parser is also able to associate form fields not contained within a "form" node. Matching the specification summarized here: https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#association-of-controls-and-forms
 
 ## Examples
 For all examples, an assumption is made that the markup to be parsed has already been fetched into a variable called "html_doc."
@@ -50,62 +69,46 @@ For all examples, an assumption is made that the markup to be parsed has already
 ```python
 import html_form_parser
 
-form = html_form_parser.Form(html_doc)
-name_family = form.fields["familyName"].value
+form_browser = html_form_parser.HtmlFormParser(html_doc)
+name_family_idx = form_browser.forms[0].index_by_name("nameFamily")
 
-print(name_family)
+print(form.forms[0][name_family_idx].value)
 ```
 
 
 ### Example 2 &ndash; Updating a "text" input
 Updating the value of a text entry field is available by using the field's name attribute in the fields property. The value property can then be updated.
 ```python
-from html_form_parser import Form
+from html_form_parser import HtmlFormParser
 
-form = Form(html_doc)
-form.fields["familyName"].value = "Smith"
-form.fields["givenName"].value = "John"
+form_browser = HtmlFormParser(html_doc)
+name_family_idx = form_browser.forms[0].index_by_name("nameFamily")
+name_given_idx = form_browser.forms[0].index_by_name("nameGiven")
+
+form_browser.forms[0][name_family_idx].value = "Smith"
+form_browser.forms[0][name_given_idx].value = "John"
 ```
 
 ### Example 3 &ndash; Checking or selecting the "checkbox" input
 Access to a checkbox, radio button, or select option can be done by providing a tuple pair containing the field's name attribute and field's value attribute. Then the is_selected property can be enabled or disabled with a boolean value.
 ```python
-from html_form_parser import Form
+from html_form_parser import HtmlFormParser
 
-form = Form(html_doc)
-form.fields[("musicGenre", "Classical", )].is_selected = True
+form_browser = HtmlFormParser(html_doc)
+music_genre_option_idx = form_browser.forms[0].index_by_name_value("musicGenre", "Classical")
+
+form_browser.forms[0][music_genre_option_idx].is_submitable = True
 ```
 
-### Example 4 &ndash; Updating the properties of a field by index
-All of the form elements are available with an integer index. The fields in the collection are not sorted and are not stored in the order they are presented in the HTML markup. This approach is useful if the calling method has built its own index of the fields.
-```python
-from html_form_parser import Form
-
-form = Form(html_doc)
-form.fields[0].value = "Smith"
-form.fields[1].value = "John"
-form.fields[8].is_selected = True
-```
-
-### Example 5 &ndash; Selecting a form by name
-If the markup contains two form elements, the desired form can be selected by passing a value to the name parameter.
-```python
-from html_form_parser import Form
-
-form = Form(html_doc, name="alternateForm")
-```
-
-### Example 6 &ndash; Re-grouping a select element
+### Example 4 &ndash; Re-grouping a select element
 Select elements are parsed into separate `FormElement` objects. If an application needs to validate only one option is selected, this is a possible approach:
 ```python
-from html_form_parser import Form
+from html_form_parser import HtmlFormParser
 
-form = Form(html_doc)
+form_browser = HtmlFormParser(html_doc)
 
-select_options = [option for option in form.fields 
-                  if option.primary_type == "select"
-                          and option.name == "example"
-                          and option.is_selected]
+select_options = [option for option in form_browser.forms[0].fields
+                  if option.name == "musicGenre" and option.is_selected]
 
 if len(select_options) != 1:
     raise RuntimeError("too many options selected")
