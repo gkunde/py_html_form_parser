@@ -64,7 +64,6 @@ The parser is also able to associate form fields not contained within a "form" n
 ## Examples
 For all examples, an assumption is made that the markup to be parsed has already been fetched into a variable called "html_doc."
 
-> **These examples are out of date and no longer represent the current models and design of the library.**
 ### Example 1 &ndash; Parsing form markup and accessing a field by name
 ```python
 import html_form_parser
