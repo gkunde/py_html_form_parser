@@ -27,20 +27,20 @@ This object represents a single form having been parsed from the HTML mark-up an
 
 |Property |Meaning |
 |:--------|:-------|
-|name |The name provided to the form in the HTML markup. This serves only to help differentiate different forms. |
-|action |The URL the form data will be posted to. |
-|method |The HTTP action that will be used to send the data, default is `GET`. |
-|enctype |The encoding type the HTML markup provided as how to send the form data. |
-|fields |A collection of the parsed HTML form's fields. |
+|`name` |The name provided to the form in the HTML markup. This serves only to help differentiate different forms. |
+|`action` |The URL the form data will be posted to. |
+|`method` |The HTTP action that will be used to send the data, default is `GET`. |
+|`enctype` |The encoding type the HTML markup provided as how to send the form data. |
+|`fields` |A collection of the parsed HTML form's fields. |
 
 #### FormDataField
 This object is used to represent the HTML form input fields. The parsing of the page will break each of the input elements into individual FormDataField objects. See the parsing section for more information.
 |Property|Meaning|
 |:-------|:------|
-|name |The name attribute of the element |
-|value |The value attribute of the element |
-|filename |The filename to present for the file data stored in the value property. |
-|is_submitable |A flag to indicate the object is selected to be submitted during form submission. |
+|`name` |The name attribute of the element |
+|`value` |The value attribute of the element |
+|`filename` |The filename to present for the file data stored in the value property. |
+|`is_submitable` |A flag to indicate the object is selected to be submitted during form submission. |
 
 ### Parsing
 A parser is provided to render the web form in the FormData model. This parser is able to render multiple forms contained in the HTML markup, and associate all fields to the correct parent form.
@@ -59,7 +59,7 @@ A field like the following will create multiple FormDataEntry objects to represe
 </select>
 ```
 
-The parser is also able to associate form fields not contained within a "form" node. Matching the specification summarized here: https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#association-of-controls-and-forms
+The parser is also able to associate form fields not contained within a "form" node. Matching the specification here: https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#association-of-controls-and-forms
 
 ## Examples
 For all examples, an assumption is made that the markup to be parsed has already been fetched into a variable called "html_doc."
@@ -100,7 +100,7 @@ form_browser.forms[0][music_genre_option_idx].is_submitable = True
 ```
 
 ### Example 4 &ndash; Re-grouping a select element
-Select elements are parsed into separate `FormElement` objects. If an application needs to validate only one option is selected, this is a possible approach:
+Select elements are parsed into separate `FormDataEntry` objects. If an application needs to validate only one option is selected, this is a possible approach:
 ```python
 from html_form_parser import HtmlFormParser
 
