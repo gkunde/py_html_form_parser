@@ -56,8 +56,8 @@ class FormData:
 
             if key_lower == "name":
                 self.name = value
-            elif key_lower == "value":
-                self.value = value
+            elif key_lower == "action":
+                self.action = value
             elif key_lower == "method":
                 self.method = value
             elif key_lower == "enctype":

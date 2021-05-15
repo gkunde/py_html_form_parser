@@ -69,7 +69,7 @@ For all examples, an assumption is made that the markup to be parsed has already
 import html_form_parser
 
 form_browser = html_form_parser.HtmlFormParser(html_doc)
-name_family_idx = form_browser.forms[0].index_by_name("nameFamily")
+name_family_idx = form_browser.forms[0].fields.index_by_name("nameFamily")
 
 print(form.forms[0][name_family_idx].value)
 ```
@@ -81,11 +81,11 @@ Updating the value of a text entry field is available by using the field's name 
 from html_form_parser import HtmlFormParser
 
 form_browser = HtmlFormParser(html_doc)
-name_family_idx = form_browser.forms[0].index_by_name("nameFamily")
-name_given_idx = form_browser.forms[0].index_by_name("nameGiven")
+name_family_idx = form_browser.forms[0].fields.index_by_name("nameFamily")
+name_given_idx = form_browser.forms[0].fields.index_by_name("nameGiven")
 
-form_browser.forms[0][name_family_idx].value = "Smith"
-form_browser.forms[0][name_given_idx].value = "John"
+form_browser.forms[0].fields[name_family_idx].value = "Smith"
+form_browser.forms[0].fields[name_given_idx].value = "John"
 ```
 
 ### Example 3 &ndash; Checking or selecting the "checkbox" input
@@ -96,7 +96,7 @@ from html_form_parser import HtmlFormParser
 form_browser = HtmlFormParser(html_doc)
 music_genre_option_idx = form_browser.forms[0].index_by_name_value("musicGenre", "Classical")
 
-form_browser.forms[0][music_genre_option_idx].is_submitable = True
+form_browser.forms[0].fields[music_genre_option_idx].is_submitable = True
 ```
 
 ### Example 4 &ndash; Re-grouping a select element
