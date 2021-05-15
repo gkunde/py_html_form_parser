@@ -1,6 +1,6 @@
 from typing import List
 
-from .form_data_entry_collection import FormDataEntryCollection
+from html_form_parser.models.form_data_entry_collection import FormDataEntryCollection
 
 
 class FormData:

@@ -1,7 +1,7 @@
 from collections.abc import Iterable, MutableSequence
 from typing import List
 
-from .form_data_entry import FormDataEntry
+from html_form_parser.models.form_data_entry import FormDataEntry
 
 
 class FormDataEntryCollection(MutableSequence):

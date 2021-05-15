@@ -3,9 +3,9 @@ from typing import List
 
 from bs4 import BeautifulSoup, Tag
 
-from .models.form_data import FormData
-from .models.form_data_entry import FormDataEntry
-from .parsers import form_data_entry_parser
+from html_form_parser.models.form_data import FormData
+from html_form_parser.models.form_data_entry import FormDataEntry
+from html_form_parser.parsers import form_data_entry_parser
 
 
 class HtmlFormParser:

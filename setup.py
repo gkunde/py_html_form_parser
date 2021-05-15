@@ -14,7 +14,7 @@ if os.path.isfile(required_packages_path):
 
 setuptools.setup(
     name="html_form_parser",
-    version="0.0.8",
+    version="0.0.9",
     author="Garrett Kunde",
     author_email="https://www.github.com/gkunde/py_html_form_parser/issues",
     description="Static HTML Form Parser",
