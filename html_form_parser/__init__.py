@@ -128,13 +128,14 @@ class HtmlFormParser:
         :returns: A collection of Form Data Entry objects
         """
 
+        field_type = parsed_form_field.attrs.get("type", None)
+
         for parser in field_parsers:
 
-            field_type = parsed_form_field.attrs.get("type", None)
+            if field_type is not None and parser.suitable(parsed_form_field.name, field_type.strip().lower()):
+                return parser.parse(parsed_form_field)
 
-            if field_type is not None:
-
-                if parser.suitable(parsed_form_field.name, field_type.strip().lower()):
-                    return parser.parse(parsed_form_field)
+            elif parser.suitable(parsed_form_field.name, None):
+                return parser.parse(parsed_form_field)
 
         return []
